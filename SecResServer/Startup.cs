@@ -12,6 +12,9 @@ using SecResServer.Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire;
 using SecResServer.Hubs;
+using WorkflowCore.Persistence.PostgreSQL;
+using WorkflowCore.Interface;
+using SecResServer.Workflows;
 
 namespace SecResServer
 {
@@ -35,6 +38,8 @@ namespace SecResServer
             services.AddHangfire(configuration => configuration.UsePostgreSqlStorage(Configuration.GetConnectionString("HfDbConnection")));
 
             services.AddSignalR();
+
+            services.AddWorkflow(cfg => cfg.UsePostgreSQL(Configuration.GetConnectionString("WfConnection"), true, true));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,10 +58,16 @@ namespace SecResServer
                 routes.MapHub<SecHub>("/secHub");
             });
 
+            var wfHost = app.ApplicationServices.GetService<IWorkflowHost>();
+            wfHost.RegisterWorkflow<LoadStockPriceWF>();
+            wfHost.Start();
+
             app.Run(async (context) =>
             {
                 await context.Response.WriteAsync("Hello World!");
             });
+
+
         }
     }
 }
