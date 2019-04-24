@@ -10,6 +10,8 @@ namespace SecResServer.Model
     {
         public SecResDbContext(DbContextOptions<SecResDbContext> options) : base(options) { }
 
+        public DbSet<EdgarCompany> EdgarCompanies { get; set; }
+
         public DbSet<Company> Companies { get; set; }
         public DbSet<Country> Countries { get; set; }
         

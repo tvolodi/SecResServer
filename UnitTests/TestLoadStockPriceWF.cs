@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SecResServer.Workflows;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WorkflowCore.Interface;
 using Xunit;
 
 namespace UnitTests
