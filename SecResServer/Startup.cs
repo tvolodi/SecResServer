@@ -12,9 +12,7 @@ using SecResServer.Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire;
 using SecResServer.Hubs;
-using WorkflowCore.Persistence.PostgreSQL;
-using WorkflowCore.Interface;
-using SecResServer.Workflows;
+using SecResServer.Model;
 
 namespace SecResServer
 {
@@ -32,14 +30,17 @@ namespace SecResServer
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<HfDbContext>(options => 
-                options.UseNpgsql(Configuration.GetConnectionString("HfDbConnection")));
+            //services.AddDbContext<HfDbContext>(options => 
+            //    options.UseNpgsql(Configuration.GetConnectionString("HfDbConnection")));
 
             services.AddHangfire(configuration => configuration.UsePostgreSqlStorage(Configuration.GetConnectionString("HfDbConnection")));
 
             services.AddSignalR();
 
-            services.AddWorkflow(cfg => cfg.UsePostgreSQL(Configuration.GetConnectionString("WfConnection"), true, true));
+            services.AddDbContext<SecResDbContext>(options =>
+            {
+                options.UseNpgsql(Configuration.GetConnectionString("SecResDbConnection"));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,10 +58,6 @@ namespace SecResServer
             {
                 routes.MapHub<SecHub>("/secHub");
             });
-
-            var wfHost = app.ApplicationServices.GetService<IWorkflowHost>();
-            wfHost.RegisterWorkflow<LoadStockPriceWF>();
-            wfHost.Start();
 
             app.Run(async (context) =>
             {

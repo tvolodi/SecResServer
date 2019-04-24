@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SecResServer.Hangfire
 {
-    public class HfDbContext : DbContext
+    public class HfDbContext // : DbContext
     {
-        public HfDbContext(DbContextOptions<HfDbContext> options)
-            : base(options) { }
+        //public HfDbContext(DbContextOptions<HfDbContext> options)
+        //    : base(options) { }
     }
 }
