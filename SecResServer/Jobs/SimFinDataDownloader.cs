@@ -10,7 +10,7 @@ namespace SecResServer.Jobs
     public class SimFinDataDownloader 
     {
 
-        // private SecResDbContext dbContext;
+        private SecResDbContext dbContext;
         private string dbConnectionString = string.Empty;
         private string baseAddress = "https://simfin.com/api/v1/info/";
 
@@ -21,6 +21,7 @@ namespace SecResServer.Jobs
         {
 
             this.dbConnectionString = dbConnectionString;
+            
         }
 
         public void ExecuteDaily()
@@ -46,11 +47,16 @@ namespace SecResServer.Jobs
         {
             int totalQnt = 0;
             string serviceName = "all-entities";
-            string httpReqString = $"{baseAddress}{serviceName}?api={apiKey}";
+            string httpReqString = $"{baseAddress}{serviceName}?api-key={apiKey}";
             List<SimFinEntity> simFinEntities = await Libs.HttpReqExec.GetAsync<List<SimFinEntity>>(httpReqString);
+            with(Si)
+            for (int i = 0; i< simFinEntities.Count; i++)
+            {
+
+            }
 
 
-
+            totalQnt = simFinEntities.Count();
             return totalQnt;
         }
     }
