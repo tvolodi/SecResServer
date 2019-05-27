@@ -27,6 +27,11 @@ namespace SecResServer.Jobs
             string apiName = "descriptions";
             string resourceName = "companies";
             string fieldName = "primarysymbol";
+            int lastTimeRecordQnt = 0;
+            bool isFirstRun = true;
+            int recordsLimit = 999;
+            int recordsOffset = 0;
+            string apiKey = "";
 
             Task.Run(async () =>
             {
@@ -46,13 +51,13 @@ namespace SecResServer.Jobs
                             string symbol = symbolList[i];
                             if (symbol != null && symbol.Length > 0)
                             {
-                                edgarSymbol = new EdgarSymbol { Symbol = symbolList[i] };
-                                await dbContext.AddAsync(edgarSymbol);
+                                edgarCompany = new EdgarCompany { PrimarySymbol = symbolList[i] };
+                                await dbContext.AddAsync(edgarCompany);
                             }
                         }
                         else
                         {
-                            edgarSymbol.UpdatedTimeStamp = DateTime.Now;
+                            edgarCompany.LastUpdateDT = DateTime.Now;
                         }
                     }
                     await dbContext.SaveChangesAsync();

@@ -13,6 +13,7 @@ using Hangfire.PostgreSql;
 using Hangfire;
 using SecResServer.Hubs;
 using SecResServer.Model;
+using SecResServer.Jobs;
 
 namespace SecResServer
 {
@@ -37,10 +38,14 @@ namespace SecResServer
 
             services.AddSignalR();
 
+            services.AddMvc();
+
             services.AddDbContext<SecResDbContext>(options =>
             {
                 options.UseNpgsql(Configuration.GetConnectionString("SecResDbConnection"));
             });
+
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,9 +64,21 @@ namespace SecResServer
                 routes.MapHub<SecHub>("/secHub");
             });
 
+            SimFinDataDownloader simFinDataDownloader = new SimFinDataDownloader(Configuration.GetConnectionString("SecResDbConnection"));
+            Task.Run(async () =>
+            {
+                await simFinDataDownloader.DownloadAllEntitiesAsync();
+            });
+
+
             app.Run(async (context) =>
             {
+
                 //await context.Response.WriteAsync("Hello World!");
+                
+                //SimFinDataDownloader simFinDataDownloader = new SimFinDataDownloader(Configuration.GetConnectionString("SecResDbConnection"));
+                //await simFinDataDownloader.DownloadAllEntitiesAsync();
+                
             });
 
 
