@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SecResServer.Model;
@@ -9,9 +10,10 @@ using SecResServer.Model;
 namespace SecResServer.Migrations
 {
     [DbContext(typeof(SecResDbContext))]
-    partial class SecResDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190528185911_SimFinEntityProgress")]
+    partial class SimFinEntityProgress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,18 +81,6 @@ namespace SecResServer.Migrations
                     b.ToTable("EdgarCompanies");
                 });
 
-            modelBuilder.Entity("SecResServer.Model.PeriodType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Name");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PeriodTypes");
-                });
-
             modelBuilder.Entity("SecResServer.Model.SimFin.SimFinEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -155,18 +145,6 @@ namespace SecResServer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SimFinSectors");
-                });
-
-            modelBuilder.Entity("SecResServer.Model.SimFin.StmtType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Name");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("StmtTypes");
                 });
 
             modelBuilder.Entity("SecResServer.Model.Company", b =>

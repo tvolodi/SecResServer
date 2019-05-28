@@ -28,13 +28,23 @@ namespace SecResServer.Model
             }
         }
 
+        public DbSet<PeriodType> PeriodTypes { get; set; }
+        public DbSet<StmtType> StmtTypes { get; set; }
+
         public DbSet<EdgarCompany> EdgarCompanies { get; set; }
 
         public DbSet<Company> Companies { get; set; }
         public DbSet<Country> Countries { get; set; }
-        
+
         // SimFin Domain
-        public DbSet<SimFinEntity> simFinEntities { get; set; }
+
+        public DbSet<SimFinEntity> SimFinEntities { get; set; }
+
+        public DbSet<SimFinEntityProgress> SimFinEntityProgresses { get; set; }
+
+        public DbSet<SimFinIndustry> SimFinIndustries { get; set; }
+        public DbSet<SimFinSector> SimFinSectors { get; set; }
+
 
 
     }

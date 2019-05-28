@@ -8,6 +8,7 @@ namespace SecResServer.Model
     interface IUpdateTrail
     {
         DateTime LastUpdateDT { get; set; }
+        DateTime? DeleteDT { get; set; }
 
     }
 }

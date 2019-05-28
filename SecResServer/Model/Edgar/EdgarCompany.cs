@@ -30,5 +30,6 @@ namespace SecResServer.Model
         public string SicDescription { get; set; }
 
         public DateTime LastUpdateDT { get; set; } = DateTime.Now;
+        public DateTime? DeleteDT { get; set; }
     }
 }

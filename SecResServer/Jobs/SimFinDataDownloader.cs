@@ -1,4 +1,5 @@
-﻿using SecResServer.Model;
+﻿using Microsoft.EntityFrameworkCore;
+using SecResServer.Model;
 using SecResServer.Model.SimFin;
 using System;
 using System.Collections.Generic;
@@ -49,9 +50,72 @@ namespace SecResServer.Jobs
             string serviceName = "all-entities";
             string httpReqString = $"{baseAddress}{serviceName}?api-key={apiKey}";
             List<SimFinEntity> simFinEntities = await Libs.HttpReqExec.GetAsync<List<SimFinEntity>>(httpReqString);
-            with(Si)
-            for (int i = 0; i< simFinEntities.Count; i++)
+            using (SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
             {
+                for (int i = 0; i < simFinEntities.Count; i++)
+                {
+                    SimFinEntity currSimFinEntity = simFinEntities[i];
+
+                    SimFinEntity simFinEntity = await dbContext.SimFinEntities.Where(se => se.Ticker == currSimFinEntity.Ticker).FirstOrDefaultAsync();
+                    if(simFinEntity == null)
+                    {
+                        
+                        simFinEntity = new SimFinEntity
+                        {
+                            Name = currSimFinEntity.Name,
+                            SimFinId = currSimFinEntity.SimFinId,
+                            Ticker = currSimFinEntity.Ticker
+                        };
+                        await dbContext.AddAsync(simFinEntity);
+                    }
+                    else
+                    {
+                        simFinEntity.LastUpdateDT = DateTime.Now;
+                        dbContext.Entry(simFinEntity).State = EntityState.Modified;
+                    }
+
+                }
+                await dbContext.SaveChangesAsync();
+
+            }
+
+
+            totalQnt = simFinEntities.Count();
+            return totalQnt;
+        }
+
+        public async Task<int> DownloadStmtAllEntitiesAsync()
+        {
+            int totalQnt = 0;
+            string serviceName = "all-entities";
+            string httpReqString = $"{baseAddress}{serviceName}?api-key={apiKey}";
+            List<SimFinEntity> simFinEntities = await Libs.HttpReqExec.GetAsync<List<SimFinEntity>>(httpReqString);
+            using (SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
+            {
+                for (int i = 0; i < simFinEntities.Count; i++)
+                {
+                    SimFinEntity currSimFinEntity = simFinEntities[i];
+
+                    SimFinEntity simFinEntity = await dbContext.SimFinEntities.Where(se => se.Ticker == currSimFinEntity.Ticker).FirstOrDefaultAsync();
+                    if (simFinEntity == null)
+                    {
+
+                        simFinEntity = new SimFinEntity
+                        {
+                            Name = currSimFinEntity.Name,
+                            SimFinId = currSimFinEntity.SimFinId,
+                            Ticker = currSimFinEntity.Ticker
+                        };
+                        await dbContext.AddAsync(simFinEntity);
+                    }
+                    else
+                    {
+                        simFinEntity.LastUpdateDT = DateTime.Now;
+                        dbContext.Entry(simFinEntity).State = EntityState.Modified;
+                    }
+
+                }
+                await dbContext.SaveChangesAsync();
 
             }
 

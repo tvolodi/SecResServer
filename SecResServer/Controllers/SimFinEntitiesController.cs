@@ -25,14 +25,14 @@ namespace SecResServer.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SimFinEntity>>> GetsimFinEntities()
         {
-            return await _context.simFinEntities.ToListAsync();
+            return await _context.SimFinEntities.ToListAsync();
         }
 
         // GET: api/SimFinEntities/5
         [HttpGet("{id}")]
         public async Task<ActionResult<SimFinEntity>> GetSimFinEntity(int id)
         {
-            var simFinEntity = await _context.simFinEntities.FindAsync(id);
+            var simFinEntity = await _context.SimFinEntities.FindAsync(id);
 
             if (simFinEntity == null)
             {
@@ -93,13 +93,13 @@ namespace SecResServer.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<SimFinEntity>> DeleteSimFinEntity(int id)
         {
-            var simFinEntity = await _context.simFinEntities.FindAsync(id);
+            var simFinEntity = await _context.SimFinEntities.FindAsync(id);
             if (simFinEntity == null)
             {
                 return NotFound();
             }
 
-            _context.simFinEntities.Remove(simFinEntity);
+            _context.SimFinEntities.Remove(simFinEntity);
             await _context.SaveChangesAsync();
 
             return simFinEntity;
@@ -107,7 +107,7 @@ namespace SecResServer.Controllers
 
         private bool SimFinEntityExists(int id)
         {
-            return _context.simFinEntities.Any(e => e.Id == id);
+            return _context.SimFinEntities.Any(e => e.Id == id);
         }
     }
 }

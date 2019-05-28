@@ -10,7 +10,7 @@ namespace SecResServer.Model.SimFin
     /// <summary>
     /// SimFin Entity converted from JSON
     /// </summary>
-    public class SimFinEntity
+    public class SimFinEntity : IUpdateTrail
     {
         [Key]
         public int Id { get; set; }
@@ -22,6 +22,9 @@ namespace SecResServer.Model.SimFin
         public string Ticker { get; set; }
 
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string Name { get; set; }        
+
+        public DateTime LastUpdateDT { get; set; } = DateTime.Now;
+        public DateTime? DeleteDT { get; set; } = null;
     }
 }
