@@ -6,15 +6,11 @@ using System.Threading.Tasks;
 
 namespace SecResServer.Model.SimFin
 {
-    public class SimFinEntityProgress
+    public class SimFinRequestLog
     {
         [Key]
         public int Id { get; set; }
 
-        public int SimFinEntityId { get; set; }
-
-        public bool IsCompanyDataLoaded { get; set; } = false;
-
-        public bool IsInitStmtLoaded { get; set; }
+        public DateTime RequestDT { get; set; }
     }
 }

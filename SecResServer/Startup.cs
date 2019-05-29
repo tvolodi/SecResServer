@@ -67,7 +67,7 @@ namespace SecResServer
             SimFinDataDownloader simFinDataDownloader = new SimFinDataDownloader(Configuration.GetConnectionString("SecResDbConnection"));
             Task.Run(async () =>
             {
-                await simFinDataDownloader.DownloadAllEntitiesAsync();
+                await simFinDataDownloader.DownloadAllStmtAsync();
             });
 
 

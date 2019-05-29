@@ -43,7 +43,14 @@ namespace SecResServer.Model
         public DbSet<SimFinEntityProgress> SimFinEntityProgresses { get; set; }
 
         public DbSet<SimFinIndustry> SimFinIndustries { get; set; }
+
+        public DbSet<SimFinStmtRegistry> simFinStmtRegistries { get; set; }
+
+        public DbSet<SimFinRequestLog> SimFinRequestLogs { get; set; }
+
         public DbSet<SimFinSector> SimFinSectors { get; set; }
+
+        
 
 
 
