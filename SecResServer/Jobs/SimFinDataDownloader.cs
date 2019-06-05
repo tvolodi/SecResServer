@@ -91,13 +91,25 @@ namespace SecResServer.Jobs
             int totalQnt = 0;
             string serviceName = "companies/id";
             string subServiceName = "statements/list";
-            string httpReqString = $"{baseAddress}{serviceName}/111052/{subServiceName}?api-key={apiKey}";
-            JObject simFinStmtRegistry = await Libs.HttpReqExec.GetAsync<JObject>(httpReqString);
+            
+            int simFinEntityId = 0;
+                 
+            using (SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
+            {
+                List<SimFinEntity> simFinEntities = await dbContext.SimFinEntities.ToListAsync();
+                for (int i = 0; i < simFinEntities.Count; i++)
+                {
+                    SimFinEntity entity = simFinEntities[i];
+                    simFinEntityId = entity.SimFinId;
+                    string httpReqString = $"{baseAddress}{serviceName}/{simFinEntityId}/{subServiceName}?api-key={apiKey}";
 
-            await RegisterStmtAsync("pl", simFinStmtRegistry);
-            await RegisterStmtAsync("bs", simFinStmtRegistry);
-            await RegisterStmtAsync("cf", simFinStmtRegistry);
+                    JObject simFinStmtRegistry = await Libs.SimFinHttpReqExec.ExecSimFinHttpReqAsync<JObject>(httpReqString, dbConnectionString);
 
+                    await RegisterStmtAsync("pl", simFinStmtRegistry, simFinEntityId);
+                    await RegisterStmtAsync("bs", simFinStmtRegistry, simFinEntityId);
+                    await RegisterStmtAsync("cf", simFinStmtRegistry, simFinEntityId);
+                }
+            }
 
             // 
             //StmtListJsonConvEntity simFinStmtRegistry = await Libs.HttpReqExec.GetAsync<StmtListJsonConvEntity>(httpReqString);
@@ -149,24 +161,92 @@ namespace SecResServer.Jobs
             return totalQnt;
         }
 
-        private async Task RegisterStmtAsync(string stmtType, JObject jObject)
+        private async Task RegisterStmtAsync(string stmtType, JObject jObject, int simFinEntityIdCode)
         {
+            int simFinEntityId = 0;
             JToken stmtTypeJson = jObject[stmtType];
             List<StmtEntity> stmts = new List<StmtEntity>();
-
-            foreach (var item in stmtTypeJson)
+            using(SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
             {
-                StmtEntity stmtEntity = JsonConvert.DeserializeObject<StmtEntity>(item.ToString());
+                foreach (var item in stmtTypeJson)
+                {
+                    StmtEntity stmtEntity = JsonConvert.DeserializeObject<StmtEntity>(item.ToString());
 
-                SimFinStmtRegistry stmt = await dbContext
-                                                .simFinStmtRegistries
-                                                .Include(sr => sr.StmtType)
-                                                .Include(sr => sr.PeriodType)
-                                                .Where(sr => sr.PeriodType.Name == stmtEntity.Period
-                                                                    && sr.FYear == stmtEntity.FYear
-                                                                    && sr.StmtType.Name == stmtType)
-                                                .FirstOrDefaultAsync();
+                    SimFinStmtRegistry stmt = await dbContext
+                                                    .simFinStmtRegistries
+                                                    .Include(sr => sr.StmtType)
+                                                    .Include(sr => sr.PeriodType)
+                                                    .Where(sr => sr.PeriodType.Name == stmtEntity.Period
+                                                                        && sr.FYear == stmtEntity.FYear
+                                                                        && sr.StmtType.Name == stmtType)
+                                                    .FirstOrDefaultAsync();
+                    if (stmt == null)
+                    {
+                        int periodId = await dbContext.PeriodTypes.Where(pt => pt.Name == stmtEntity.Period).Select(pt => pt.Id).FirstOrDefaultAsync();
+                        if(periodId == 0)
+                        {
+                            PeriodType periodType = new PeriodType
+                            {
+                                Name = stmtEntity.Period
+                            };
+                            await dbContext.AddAsync(periodType);
+                            await dbContext.SaveChangesAsync();
+                            periodId = periodType.Id;
+                        }
+                        int stmtTypeId = await dbContext.StmtTypes.Where(st => st.Name == stmtType).Select(st => st.Id).FirstOrDefaultAsync();
+                        if(stmtTypeId == 0)
+                        {
+                            StmtType type = new StmtType
+                            {
+                                Name = stmtType
+                            };
+                            await dbContext.AddAsync(type);
+                            await dbContext.SaveChangesAsync();
+                            stmtTypeId = type.Id;
+                        }
+
+                        if(simFinEntityId == 0)
+                        {
+                            simFinEntityId = await dbContext.SimFinEntities
+                                                                .Where(e => e.SimFinId == simFinEntityIdCode)
+                                                                .Select(e => e.Id)
+                                                                .FirstOrDefaultAsync();
+                        }
+
+                        stmt = new SimFinStmtRegistry
+                        {
+                            IsCalculated = stmtEntity.IsCalculated,
+                            PeriodTypeId = periodId,
+                            SimFinEntityId = simFinEntityId,
+                            StmtTypeId = stmtTypeId,
+                            LoadDateTime = DateTime.Now,
+                            IsStmtDetailsLoaded = false,
+                            FYear = stmtEntity.FYear
+                        };
+
+                        try
+                        {
+                            await dbContext.AddAsync(stmt);
+                        } catch (Exception e)
+                        {
+                            Console.WriteLine(e.ToString());
+                        }
+
+                        try
+                        {
+                            await dbContext.SaveChangesAsync();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.ToString());
+                        }
+
+                        
+                    }
+                }
+
             }
+
 
         }
     }

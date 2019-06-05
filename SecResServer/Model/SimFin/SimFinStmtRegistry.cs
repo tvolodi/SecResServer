@@ -33,6 +33,8 @@ namespace SecResServer.Model.SimFin
 
         public bool IsCalculated { get; set; }
 
+        public bool IsStmtDetailsLoaded { get; set; }
+
 
     }
 }

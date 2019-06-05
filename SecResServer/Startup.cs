@@ -34,7 +34,7 @@ namespace SecResServer
             //services.AddDbContext<HfDbContext>(options => 
             //    options.UseNpgsql(Configuration.GetConnectionString("HfDbConnection")));
 
-            services.AddHangfire(configuration => configuration.UsePostgreSqlStorage(Configuration.GetConnectionString("HfDbConnection")));
+            // services.AddHangfire(configuration => configuration.UsePostgreSqlStorage(Configuration.GetConnectionString("HfDbConnection")));
 
             services.AddSignalR();
 
@@ -51,8 +51,8 @@ namespace SecResServer
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseHangfireServer();
-            app.UseHangfireDashboard();
+            // app.UseHangfireServer();
+            // app.UseHangfireDashboard();
 
             if (env.IsDevelopment())
             {
@@ -67,6 +67,7 @@ namespace SecResServer
             SimFinDataDownloader simFinDataDownloader = new SimFinDataDownloader(Configuration.GetConnectionString("SecResDbConnection"));
             Task.Run(async () =>
             {
+                // await simFinDataDownloader.DownloadAllStmtAsync();
                 await simFinDataDownloader.DownloadAllStmtAsync();
             });
 
