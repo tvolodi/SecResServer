@@ -28,17 +28,7 @@ namespace SecResServer.Jobs
         }
 
         public void ExecuteDaily()
-        {
-            // string baseAddress = "https://simfin.com/api/v1/info/";
-            
-            //string apiName = "descriptions";
-            //string resourceName = "companies";
-            //string fieldName = "primarysymbol";
-            //int lastTimeRecordQnt = 0;
-            //bool isFirstRun = true;
-            //int recordsLimit = 999;
-            //int recordsOffset = 0;
-            
+        {         
 
             Task.Run(async () =>
             {
@@ -111,52 +101,6 @@ namespace SecResServer.Jobs
                 }
             }
 
-            // 
-            //StmtListJsonConvEntity simFinStmtRegistry = await Libs.HttpReqExec.GetAsync<StmtListJsonConvEntity>(httpReqString);
-
-
-            //JToken plJson = simFinStmtRegistry["pl"];
-            //List<StmtEntity> plStmts = new List<StmtEntity>();
-
-            //foreach(var item in plJson)
-            //{
-            //    StmtEntity stmtEntity = JsonConvert.DeserializeObject<StmtEntity>(item.ToString());
-            //    plStmts.Add(stmtEntity);                
-            //}
-
-            //Dictionary<int, StmtEntity> plDict = plJson.ToDictionary(pair => pair.Key, pair => (StmtEntity)pair.Value);
-            //JsonConvert.DeserializeObject<Dictionary<int, StmtEntity>>(
-
-            //using (SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
-            //{
-            //    for (int i = 0; i < simFinEntities.Count; i++)
-            //    {
-            //        SimFinEntity currSimFinEntity = simFinEntities[i];
-
-            //        SimFinEntity simFinEntity = await dbContext.SimFinEntities.Where(se => se.Ticker == currSimFinEntity.Ticker).FirstOrDefaultAsync();
-            //        if (simFinEntity == null)
-            //        {
-
-            //            simFinEntity = new SimFinEntity
-            //            {
-            //                Name = currSimFinEntity.Name,
-            //                SimFinId = currSimFinEntity.SimFinId,
-            //                Ticker = currSimFinEntity.Ticker
-            //            };
-            //            await dbContext.AddAsync(simFinEntity);
-            //        }
-            //        else
-            //        {
-            //            simFinEntity.LastUpdateDT = DateTime.Now;
-            //            dbContext.Entry(simFinEntity).State = EntityState.Modified;
-            //        }
-
-            //    }
-            //    await dbContext.SaveChangesAsync();
-
-            //}
-
-
             totalQnt = 1;
             return totalQnt;
         }
@@ -173,7 +117,7 @@ namespace SecResServer.Jobs
                     StmtEntity stmtEntity = JsonConvert.DeserializeObject<StmtEntity>(item.ToString());
 
                     SimFinStmtRegistry stmt = await dbContext
-                                                    .simFinStmtRegistries
+                                                    .SimFinStmtRegistries
                                                     .Include(sr => sr.StmtType)
                                                     .Include(sr => sr.PeriodType)
                                                     .Where(sr => sr.PeriodType.Name == stmtEntity.Period
@@ -220,7 +164,7 @@ namespace SecResServer.Jobs
                             SimFinEntityId = simFinEntityId,
                             StmtTypeId = stmtTypeId,
                             LoadDateTime = DateTime.Now,
-                            IsStmtDetailsLoaded = false,
+                            IsStmtLoaded = false,
                             FYear = stmtEntity.FYear
                         };
 
@@ -241,6 +185,7 @@ namespace SecResServer.Jobs
                             Console.WriteLine(e.ToString());
                         }
 
+                        // Load original and standardized statements
                         
                     }
                 }

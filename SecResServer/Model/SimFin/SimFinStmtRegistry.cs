@@ -22,6 +22,8 @@ namespace SecResServer.Model.SimFin
         [ForeignKey("StmtType")]
         public int StmtTypeId { get; set; }
 
+        public SimFinStmtIndustryTemplate SimFinStmtIndustryTemplate { get;set;}
+
         public int FYear { get; set; }
 
         public PeriodType PeriodType { get; set; }
@@ -31,10 +33,11 @@ namespace SecResServer.Model.SimFin
 
         public DateTime LoadDateTime { get; set; }
 
+        public bool IsStmtLoaded { get; set; }
+
         public bool IsCalculated { get; set; }
 
-        public bool IsStmtDetailsLoaded { get; set; }
-
+        
 
     }
 }

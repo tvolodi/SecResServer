@@ -44,7 +44,13 @@ namespace SecResServer.Model
 
         public DbSet<SimFinIndustry> SimFinIndustries { get; set; }
 
-        public DbSet<SimFinStmtRegistry> simFinStmtRegistries { get; set; }
+        public DbSet<SimFinStdStmt> SimFinStdStmts { get; set; }
+
+        public DbSet<SimFinStdStmtDetail> SimFinStdStmtDetails { get; set; }
+
+        public DbSet<SimFinStmtDetailType> SimFinStmtDetailTypes { get; set; }
+
+        public DbSet<SimFinStmtRegistry> SimFinStmtRegistries { get; set; }
 
         public DbSet<SimFinRequestLog> SimFinRequestLogs { get; set; }
 

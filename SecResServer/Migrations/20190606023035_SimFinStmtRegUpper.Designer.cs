@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SecResServer.Model;
@@ -9,9 +10,10 @@ using SecResServer.Model;
 namespace SecResServer.Migrations
 {
     [DbContext(typeof(SecResDbContext))]
-    partial class SecResDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190606023035_SimFinStmtRegUpper")]
+    partial class SimFinStmtRegUpper
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -171,74 +173,6 @@ namespace SecResServer.Migrations
                     b.ToTable("SimFinSectors");
                 });
 
-            modelBuilder.Entity("SecResServer.Model.SimFin.SimFinStdStmt", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("GetFinStmtRegistryId");
-
-                    b.Property<bool>("IsStmtDetailsLoaded");
-
-                    b.Property<DateTime>("PeriodEndDate");
-
-                    b.Property<int>("SimFinStmtIndustryTemplateId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GetFinStmtRegistryId");
-
-                    b.ToTable("SimFinStdStmts");
-                });
-
-            modelBuilder.Entity("SecResServer.Model.SimFin.SimFinStdStmtDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("ParentTId");
-
-                    b.Property<int>("SimFinStdStmtId");
-
-                    b.Property<int>("SimFinStmtDetailTypeId");
-
-                    b.Property<int>("TId");
-
-                    b.Property<double>("Value");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SimFinStdStmtId");
-
-                    b.HasIndex("SimFinStmtDetailTypeId");
-
-                    b.ToTable("SimFinStdStmtDetails");
-                });
-
-            modelBuilder.Entity("SecResServer.Model.SimFin.SimFinStmtDetailType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Name");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SimFinStmtDetailTypes");
-                });
-
-            modelBuilder.Entity("SecResServer.Model.SimFin.SimFinStmtIndustryTemplate", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Name");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SimFinStmtIndustryTemplate");
-                });
-
             modelBuilder.Entity("SecResServer.Model.SimFin.SimFinStmtRegistry", b =>
                 {
                     b.Property<int>("Id")
@@ -248,15 +182,13 @@ namespace SecResServer.Migrations
 
                     b.Property<bool>("IsCalculated");
 
-                    b.Property<bool>("IsStmtLoaded");
+                    b.Property<bool>("IsStmtDetailsLoaded");
 
                     b.Property<DateTime>("LoadDateTime");
 
                     b.Property<int>("PeriodTypeId");
 
                     b.Property<int>("SimFinEntityId");
-
-                    b.Property<int?>("SimFinStmtIndustryTemplateId");
 
                     b.Property<int>("StmtTypeId");
 
@@ -265,8 +197,6 @@ namespace SecResServer.Migrations
                     b.HasIndex("PeriodTypeId");
 
                     b.HasIndex("SimFinEntityId");
-
-                    b.HasIndex("SimFinStmtIndustryTemplateId");
 
                     b.HasIndex("StmtTypeId");
 
@@ -301,27 +231,6 @@ namespace SecResServer.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("SecResServer.Model.SimFin.SimFinStdStmt", b =>
-                {
-                    b.HasOne("SecResServer.Model.SimFin.SimFinStmtRegistry", "GetFinStmtRegistry")
-                        .WithMany()
-                        .HasForeignKey("GetFinStmtRegistryId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("SecResServer.Model.SimFin.SimFinStdStmtDetail", b =>
-                {
-                    b.HasOne("SecResServer.Model.SimFin.SimFinStdStmt", "SimFinStdStmt")
-                        .WithMany()
-                        .HasForeignKey("SimFinStdStmtId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SecResServer.Model.SimFin.SimFinStmtDetailType", "SimFinStmtDetailType")
-                        .WithMany()
-                        .HasForeignKey("SimFinStmtDetailTypeId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
             modelBuilder.Entity("SecResServer.Model.SimFin.SimFinStmtRegistry", b =>
                 {
                     b.HasOne("SecResServer.Model.PeriodType", "PeriodType")
@@ -333,10 +242,6 @@ namespace SecResServer.Migrations
                         .WithMany()
                         .HasForeignKey("SimFinEntityId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SecResServer.Model.SimFin.SimFinStmtIndustryTemplate", "SimFinStmtIndustryTemplate")
-                        .WithMany()
-                        .HasForeignKey("SimFinStmtIndustryTemplateId");
 
                     b.HasOne("SecResServer.Model.SimFin.StmtType", "StmtType")
                         .WithMany()
