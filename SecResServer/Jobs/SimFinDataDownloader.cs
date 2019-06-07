@@ -5,6 +5,7 @@ using SecResServer.Model;
 using SecResServer.Model.SimFin;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -95,9 +96,11 @@ namespace SecResServer.Jobs
 
                     JObject simFinStmtRegistry = await Libs.SimFinHttpReqExec.ExecSimFinHttpReqAsync<JObject>(httpReqString, dbConnectionString);
 
-                    await RegisterStmtAsync("pl", simFinStmtRegistry, simFinEntityId);
-                    await RegisterStmtAsync("bs", simFinStmtRegistry, simFinEntityId);
-                    await RegisterStmtAsync("cf", simFinStmtRegistry, simFinEntityId);
+                    string[] stmtTypes = new string[] { "pl", "bs", "cf" };
+                    for(int itemCnt = 0; itemCnt < stmtTypes.Length; itemCnt++)
+                    {
+                        await RegisterStmtAsync(stmtTypes[itemCnt], simFinStmtRegistry, simFinEntityId);
+                    }
                 }
             }
 
@@ -165,7 +168,8 @@ namespace SecResServer.Jobs
                             StmtTypeId = stmtTypeId,
                             LoadDateTime = DateTime.Now,
                             IsStmtLoaded = false,
-                            FYear = stmtEntity.FYear
+                            FYear = stmtEntity.FYear,
+                            
                         };
 
                         try
@@ -185,13 +189,71 @@ namespace SecResServer.Jobs
                             Console.WriteLine(e.ToString());
                         }
 
-                        // Load original and standardized statements
+                        // Load original 
+
+                        await LoadOriginalStmtAsync(stmt, stmtType);
+
+                        // Load standardized statements
                         
                     }
                 }
 
             }
 
+
+        }
+
+        private async Task LoadOriginalStmtAsync(SimFinStmtRegistry stmt, string stmtType)
+        {
+            string serviceName = "companies/id";
+            string subServiceName = "statements/original";
+
+            string httpReqString = $"{baseAddress}{serviceName}/{stmt.SimFinEntityId}/{subServiceName}?stype={stmtType}&ptype={stmt.PeriodType.Name}&fyear={stmt.FYear}&api-key={apiKey}";
+
+            JObject simFinStmtDetails = await Libs.SimFinHttpReqExec.ExecSimFinHttpReqAsync<JObject>(httpReqString, dbConnectionString);
+
+            string periodEndDateStr = simFinStmtDetails["periodEndDate"].ToString();
+            DateTime periodEndDate = DateTime.ParseExact(periodEndDateStr, "YYYY-MM-DD", CultureInfo.InvariantCulture);
+            List<JObject> metaTokens = simFinStmtDetails["metaData"].Children<JObject>().ToList();
+
+            // Don't understand when several meta can be used. Trying to catch this case.
+            if(metaTokens.Count > 1)
+            {
+                throw new Exception("Found more then 1 meta. Exit");
+            }
+
+            // 
+            foreach(JObject metaDataJObject in metaTokens)
+            {
+                string firstPublished = metaDataJObject["firstPublished"].ToString();
+                DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "YYYY-MM-DD", CultureInfo.InvariantCulture);
+                string fYear = metaDataJObject["fyear"].ToString();
+                int fYearInt = int.Parse(fYear);
+                string currencyStr = metaDataJObject["currency"].ToString();
+                string periodTypeStr = metaDataJObject["period"].ToString();
+
+
+                using(SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
+                {
+                    int currencyId = await dbContext.Currencies.Where(c => c.CharCode == currencyStr).Select(c => c.Id).FirstOrDefaultAsync();
+
+                    int periodTypeId = await dbContext.PeriodTypes.Where(p => p.Name == periodTypeStr).Select(c => c.Id).FirstOrDefaultAsync();
+
+                    SimFinOriginalStmt origStmt = new SimFinOriginalStmt
+                    {
+                        CurrencyId = currencyId,
+                        FirstPublishedDate = firstPublishedDate,
+                        FYear = fYearInt,
+                        IsStmtDetailsLoaded = false,
+                        PeriodEndDate = periodEndDate,
+                        PeriodTypeId = periodTypeId,
+                        SimFinStmtRegistryId = stmt.Id                        
+                    };
+                }
+
+
+
+            }
 
         }
     }

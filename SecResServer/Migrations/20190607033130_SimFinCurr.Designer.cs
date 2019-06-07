@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SecResServer.Model;
@@ -9,9 +10,10 @@ using SecResServer.Model;
 namespace SecResServer.Migrations
 {
     [DbContext(typeof(SecResDbContext))]
-    partial class SecResDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190607033130_SimFinCurr")]
+    partial class SimFinCurr
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,11 +56,15 @@ namespace SecResServer.Migrations
 
                     b.Property<string>("CharCode");
 
+                    b.Property<int>("CountryId");
+
                     b.Property<string>("Name");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CharCode");
+
+                    b.HasIndex("CountryId");
 
                     b.HasIndex("Id");
 
@@ -318,6 +324,14 @@ namespace SecResServer.Migrations
                 });
 
             modelBuilder.Entity("SecResServer.Model.Company", b =>
+                {
+                    b.HasOne("SecResServer.Model.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SecResServer.Model.Currency", b =>
                 {
                     b.HasOne("SecResServer.Model.Country", "Country")
                         .WithMany()

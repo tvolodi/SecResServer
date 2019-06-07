@@ -22,7 +22,7 @@ namespace SecResServer.Model.SimFin
         [ForeignKey("StmtType")]
         public int StmtTypeId { get; set; }
 
-        public SimFinStmtIndustryTemplate SimFinStmtIndustryTemplate { get;set;}
+        // public SimFinStmtIndustryTemplate SimFinStmtIndustryTemplate { get;set;}
 
         public int FYear { get; set; }
 

@@ -32,9 +32,11 @@ namespace SecResServer.Model
         public DbSet<StmtType> StmtTypes { get; set; }
 
         public DbSet<EdgarCompany> EdgarCompanies { get; set; }
-
+        
         public DbSet<Company> Companies { get; set; }
         public DbSet<Country> Countries { get; set; }
+
+        public DbSet<Currency> Currencies { get; set; }
 
         // SimFin Domain
 
@@ -43,6 +45,8 @@ namespace SecResServer.Model
         public DbSet<SimFinEntityProgress> SimFinEntityProgresses { get; set; }
 
         public DbSet<SimFinIndustry> SimFinIndustries { get; set; }
+
+        public DbSet<SimFinOriginalStmt> SimFinOriginalStmts { get; set; }
 
         public DbSet<SimFinStdStmt> SimFinStdStmts { get; set; }
 
@@ -57,7 +61,13 @@ namespace SecResServer.Model
         public DbSet<SimFinSector> SimFinSectors { get; set; }
 
         
-
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Currency>()
+                .HasIndex(c => c.CharCode);
+            modelBuilder.Entity<Currency>()
+                .HasIndex(c => c.Id);
+        }
 
 
     }
