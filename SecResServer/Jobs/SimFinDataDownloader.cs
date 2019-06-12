@@ -115,10 +115,13 @@ namespace SecResServer.Jobs
             List<StmtEntity> stmts = new List<StmtEntity>();
             using(SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
             {
+                // Cycle through all statements of given type and register them in DB
                 foreach (var item in stmtTypeJson)
                 {
+                    // Get a statement item
                     StmtEntity stmtEntity = JsonConvert.DeserializeObject<StmtEntity>(item.ToString());
 
+                    // Search DB for the statement
                     SimFinStmtRegistry stmt = await dbContext
                                                     .SimFinStmtRegistries
                                                     .Include(sr => sr.StmtType)
@@ -127,9 +130,14 @@ namespace SecResServer.Jobs
                                                                         && sr.FYear == stmtEntity.FYear
                                                                         && sr.StmtType.Name == stmtType)
                                                     .FirstOrDefaultAsync();
+
+                    // If a statement entry is not registered in DB then register
                     if (stmt == null)
                     {
+                        // Get period type Id
                         int periodId = await dbContext.PeriodTypes.Where(pt => pt.Name == stmtEntity.Period).Select(pt => pt.Id).FirstOrDefaultAsync();
+
+                        // If the period type is not registered in DB then register it
                         if(periodId == 0)
                         {
                             PeriodType periodType = new PeriodType
@@ -140,7 +148,11 @@ namespace SecResServer.Jobs
                             await dbContext.SaveChangesAsync();
                             periodId = periodType.Id;
                         }
+
+                        // Get statement type Id
                         int stmtTypeId = await dbContext.StmtTypes.Where(st => st.Name == stmtType).Select(st => st.Id).FirstOrDefaultAsync();
+
+                        // If the statement type is not registered then register in DB
                         if(stmtTypeId == 0)
                         {
                             StmtType type = new StmtType
@@ -152,6 +164,7 @@ namespace SecResServer.Jobs
                             stmtTypeId = type.Id;
                         }
 
+                        // Get reporting entity DB Id
                         if(simFinEntityId == 0)
                         {
                             simFinEntityId = await dbContext.SimFinEntities
@@ -160,6 +173,7 @@ namespace SecResServer.Jobs
                                                                 .FirstOrDefaultAsync();
                         }
 
+                        // Create an statement instance
                         stmt = new SimFinStmtRegistry
                         {
                             IsCalculated = stmtEntity.IsCalculated,
@@ -189,72 +203,125 @@ namespace SecResServer.Jobs
                             Console.WriteLine(e.ToString());
                         }
 
-                        // Load original 
 
-                        await LoadOriginalStmtAsync(stmt, stmtType);
-
-                        // Load standardized statements
-                        
                     }
+
+                    // Load original statement
+
+                    await LoadOriginalStmtAsync(stmt, stmtType);
+
+                    // Load standardized statements                      
                 }
-
             }
-
-
         }
 
         private async Task LoadOriginalStmtAsync(SimFinStmtRegistry stmt, string stmtType)
         {
-            string serviceName = "companies/id";
-            string subServiceName = "statements/original";
-
-            string httpReqString = $"{baseAddress}{serviceName}/{stmt.SimFinEntityId}/{subServiceName}?stype={stmtType}&ptype={stmt.PeriodType.Name}&fyear={stmt.FYear}&api-key={apiKey}";
-
-            JObject simFinStmtDetails = await Libs.SimFinHttpReqExec.ExecSimFinHttpReqAsync<JObject>(httpReqString, dbConnectionString);
-
-            string periodEndDateStr = simFinStmtDetails["periodEndDate"].ToString();
-            DateTime periodEndDate = DateTime.ParseExact(periodEndDateStr, "YYYY-MM-DD", CultureInfo.InvariantCulture);
-            List<JObject> metaTokens = simFinStmtDetails["metaData"].Children<JObject>().ToList();
-
-            // Don't understand when several meta can be used. Trying to catch this case.
-            if(metaTokens.Count > 1)
+            // Check that the statement is not loaded already
+            bool isToLoad = false;
+            SimFinOriginalStmt simFinOriginalStmt = null;
+            using (SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
             {
-                throw new Exception("Found more then 1 meta. Exit");
-            }
+                // Get original statement for this type of statement
+                simFinOriginalStmt = await dbContext.SimFinOriginalStmts
+                                                    .Where(os => os.IsStmtDetailsLoaded == false
+                                                                && os.SimFinStmtRegistryId == stmt.Id)
+                                                    .FirstOrDefaultAsync();
 
-            // 
-            foreach(JObject metaDataJObject in metaTokens)
-            {
-                string firstPublished = metaDataJObject["firstPublished"].ToString();
-                DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "YYYY-MM-DD", CultureInfo.InvariantCulture);
-                string fYear = metaDataJObject["fyear"].ToString();
-                int fYearInt = int.Parse(fYear);
-                string currencyStr = metaDataJObject["currency"].ToString();
-                string periodTypeStr = metaDataJObject["period"].ToString();
-
-
-                using(SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
+                // If the original statement is not created then load from the site and create
+                if (simFinOriginalStmt == null)
                 {
-                    int currencyId = await dbContext.Currencies.Where(c => c.CharCode == currencyStr).Select(c => c.Id).FirstOrDefaultAsync();
+                    string serviceName = "companies/id";
+                    string subServiceName = "statements/original";
 
-                    int periodTypeId = await dbContext.PeriodTypes.Where(p => p.Name == periodTypeStr).Select(c => c.Id).FirstOrDefaultAsync();
+                    string httpReqString = $"{baseAddress}{serviceName}/{stmt.SimFinEntityId}/{subServiceName}?stype={stmtType}&ptype={stmt.PeriodType.Name}&fyear={stmt.FYear}&api-key={apiKey}";
 
-                    SimFinOriginalStmt origStmt = new SimFinOriginalStmt
+                    // Get and parse json for the original statement
+                    JObject simFinStmtDetails = await Libs.SimFinHttpReqExec.ExecSimFinHttpReqAsync<JObject>(httpReqString, dbConnectionString);
+
+                    string periodEndDateStr = simFinStmtDetails["periodEndDate"].ToString();
+                    DateTime periodEndDate = DateTime.ParseExact(periodEndDateStr, "YYYY-MM-DD", CultureInfo.InvariantCulture);
+                    List<JObject> metaTokens = simFinStmtDetails["metaData"].Children<JObject>().ToList();
+
+                    // Don't understand when several meta can be used. Trying to catch this case.
+                    if (metaTokens.Count > 1)
                     {
-                        CurrencyId = currencyId,
-                        FirstPublishedDate = firstPublishedDate,
-                        FYear = fYearInt,
-                        IsStmtDetailsLoaded = false,
-                        PeriodEndDate = periodEndDate,
-                        PeriodTypeId = periodTypeId,
-                        SimFinStmtRegistryId = stmt.Id                        
-                    };
+                        throw new Exception("Found more then 1 meta. Exit");
+                    }
+
+                    SimFinOriginalStmt origStmt = null;
+                    // !!!! The last will be saved only
+                    foreach (JObject metaDataJObject in metaTokens)
+                    {
+                        string firstPublished = metaDataJObject["firstPublished"].ToString();
+                        DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "YYYY-MM-DD", CultureInfo.InvariantCulture);
+                        string fYear = metaDataJObject["fyear"].ToString();
+                        int fYearInt = int.Parse(fYear);
+                        string currencyStr = metaDataJObject["currency"].ToString();
+                        string periodTypeStr = metaDataJObject["period"].ToString();
+
+                        int currencyId = await dbContext.Currencies.Where(c => c.CharCode == currencyStr).Select(c => c.Id).FirstOrDefaultAsync();
+
+                        int periodTypeId = await dbContext.PeriodTypes.Where(p => p.Name == periodTypeStr).Select(c => c.Id).FirstOrDefaultAsync();                       
+
+                        origStmt = new SimFinOriginalStmt
+                        {
+                            CurrencyId = currencyId,
+                            FirstPublishedDate = firstPublishedDate,
+                            FYear = fYearInt,
+                            IsStmtDetailsLoaded = false,
+                            PeriodEndDate = periodEndDate,
+                            PeriodTypeId = periodTypeId,
+                            SimFinStmtRegistryId = stmt.Id
+                        };
+                        await dbContext.AddAsync(origStmt);
+                        await dbContext.SaveChangesAsync();
+                    }
+
+                    // Fill statement details? create or update
+                    List<JObject> stmtRows = simFinStmtDetails["values"].Children<JObject>().ToList();
+                    foreach (JObject rowDetails in stmtRows)
+                    {
+                        string lineIdStr = rowDetails["lineItemId"].ToString();
+                        int lineId = int.Parse(lineIdStr);
+                        string lineItemNameStr = rowDetails["lineItemName"].ToString();
+                        string valueStr = rowDetails["value"].ToString();
+                        double value = double.Parse(valueStr);
+
+                        // Search for the statement details in DB
+                        SimFinOrigStmtDetail simFinOrigStmtDetail = await dbContext.SimFinOrigStmtDetails
+                                                                                    .Where(osd => osd.LineItemId == lineId
+                                                                                                    && osd.SimFinOriginalStmtId == origStmt.Id)
+                                                                                    .FirstOrDefaultAsync();
+
+                        if (simFinOrigStmtDetail == null)
+                        {
+                            StmtDetailName detailName = await dbContext.StmtDetailNames
+                                                                        .Where(dn => dn.Name == lineItemNameStr)
+                                                                        .FirstOrDefaultAsync();
+                            if (detailName == null)
+                            {
+                                detailName = new StmtDetailName
+                                {
+                                    Name = lineItemNameStr.Trim()
+                                };
+                                await dbContext.AddAsync(detailName);
+                                await dbContext.SaveChangesAsync();
+                            }
+
+                            simFinOrigStmtDetail = new SimFinOrigStmtDetail
+                            {
+                                LineItemId = lineId,
+                                StmtDetailNameId = detailName.Id,
+                                Value = value
+                            };
+
+                            await dbContext.AddAsync(simFinOrigStmtDetail);
+                            await dbContext.SaveChangesAsync();
+                        }
+                    }
                 }
-
-
-
             }
-
         }
     }
 }

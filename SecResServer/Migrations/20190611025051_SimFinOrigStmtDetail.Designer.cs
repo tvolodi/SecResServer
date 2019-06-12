@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SecResServer.Model;
@@ -9,9 +10,10 @@ using SecResServer.Model;
 namespace SecResServer.Migrations
 {
     [DbContext(typeof(SecResDbContext))]
-    partial class SecResDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190611025051_SimFinOrigStmtDetail")]
+    partial class SimFinOrigStmtDetail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -170,15 +172,11 @@ namespace SecResServer.Migrations
 
                     b.Property<int>("LineItemId");
 
-                    b.Property<int>("SimFinOriginalStmtId");
-
                     b.Property<int>("StmtDetailNameId");
 
                     b.Property<double>("Value");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SimFinOriginalStmtId");
 
                     b.HasIndex("StmtDetailNameId");
 
@@ -369,11 +367,6 @@ namespace SecResServer.Migrations
 
             modelBuilder.Entity("SecResServer.Model.SimFin.SimFinOrigStmtDetail", b =>
                 {
-                    b.HasOne("SecResServer.Model.SimFin.SimFinOriginalStmt", "SimFinOriginalStmt")
-                        .WithMany()
-                        .HasForeignKey("SimFinOriginalStmtId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("SecResServer.Model.StmtDetailName", "StmtDetailName")
                         .WithMany()
                         .HasForeignKey("StmtDetailNameId")

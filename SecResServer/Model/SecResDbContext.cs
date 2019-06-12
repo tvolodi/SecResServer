@@ -38,6 +38,8 @@ namespace SecResServer.Model
 
         public DbSet<Currency> Currencies { get; set; }
 
+        public DbSet<StmtDetailName> StmtDetailNames { get; set; }
+
         // SimFin Domain
 
         public DbSet<SimFinEntity> SimFinEntities { get; set; }
@@ -47,6 +49,8 @@ namespace SecResServer.Model
         public DbSet<SimFinIndustry> SimFinIndustries { get; set; }
 
         public DbSet<SimFinOriginalStmt> SimFinOriginalStmts { get; set; }
+
+        public DbSet<SimFinOrigStmtDetail> SimFinOrigStmtDetails { get; set; }
 
         public DbSet<SimFinStdStmt> SimFinStdStmts { get; set; }
 

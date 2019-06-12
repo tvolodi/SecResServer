@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SecResServer.Model;
@@ -9,9 +10,10 @@ using SecResServer.Model;
 namespace SecResServer.Migrations
 {
     [DbContext(typeof(SecResDbContext))]
-    partial class SecResDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190611022053_SimFinOrigStmt3")]
+    partial class SimFinOrigStmt3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -163,28 +165,6 @@ namespace SecResServer.Migrations
                     b.ToTable("SimFinIndustries");
                 });
 
-            modelBuilder.Entity("SecResServer.Model.SimFin.SimFinOrigStmtDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("LineItemId");
-
-                    b.Property<int>("SimFinOriginalStmtId");
-
-                    b.Property<int>("StmtDetailNameId");
-
-                    b.Property<double>("Value");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SimFinOriginalStmtId");
-
-                    b.HasIndex("StmtDetailNameId");
-
-                    b.ToTable("SimFinOrigStmtDetails");
-                });
-
             modelBuilder.Entity("SecResServer.Model.SimFin.SimFinOriginalStmt", b =>
                 {
                     b.Property<int>("Id")
@@ -197,6 +177,8 @@ namespace SecResServer.Migrations
                     b.Property<DateTime>("FirstPublishedDate");
 
                     b.Property<bool>("IsStmtDetailsLoaded");
+
+                    b.Property<int>("LineItemId");
 
                     b.Property<DateTime>("PeriodEndDate");
 
@@ -339,18 +321,6 @@ namespace SecResServer.Migrations
                     b.ToTable("StmtTypes");
                 });
 
-            modelBuilder.Entity("SecResServer.Model.StmtDetailName", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Name");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("StmtDetailNames");
-                });
-
             modelBuilder.Entity("SecResServer.Model.Company", b =>
                 {
                     b.HasOne("SecResServer.Model.Country", "Country")
@@ -364,19 +334,6 @@ namespace SecResServer.Migrations
                     b.HasOne("SecResServer.Model.SimFin.SimFinSector", "SimFinSector")
                         .WithMany()
                         .HasForeignKey("SimFinSectorId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("SecResServer.Model.SimFin.SimFinOrigStmtDetail", b =>
-                {
-                    b.HasOne("SecResServer.Model.SimFin.SimFinOriginalStmt", "SimFinOriginalStmt")
-                        .WithMany()
-                        .HasForeignKey("SimFinOriginalStmtId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SecResServer.Model.StmtDetailName", "StmtDetailName")
-                        .WithMany()
-                        .HasForeignKey("StmtDetailNameId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
