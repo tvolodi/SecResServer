@@ -121,9 +121,12 @@ namespace SecResServer.Jobs
                     // Get a statement item
                     StmtEntity stmtEntity = JsonConvert.DeserializeObject<StmtEntity>(item.ToString());
 
+                    if (stmtEntity.Period == "TTM") continue;
+
+
                     // Search DB for the statement
                     SimFinStmtRegistry stmt = await dbContext
-                                                    .SimFinStmtRegistries
+                                                    .SimFinStmtRegistries.Include(sr => sr.SimFinEntity)
                                                     .Include(sr => sr.StmtType)
                                                     .Include(sr => sr.PeriodType)
                                                     .Where(sr => sr.PeriodType.Name == stmtEntity.Period
@@ -224,23 +227,22 @@ namespace SecResServer.Jobs
             {
                 // Get original statement for this type of statement
                 simFinOriginalStmt = await dbContext.SimFinOriginalStmts
-                                                    .Where(os => os.IsStmtDetailsLoaded == false
-                                                                && os.SimFinStmtRegistryId == stmt.Id)
+                                                    .Where(os => os.SimFinStmtRegistryId == stmt.Id)
                                                     .FirstOrDefaultAsync();
 
                 // If the original statement is not created then load from the site and create
+
+                JObject simFinStmtDetails = null;
                 if (simFinOriginalStmt == null)
                 {
-                    string serviceName = "companies/id";
-                    string subServiceName = "statements/original";
+                    if (simFinStmtDetails == null)
+                    {
+                        simFinStmtDetails = await GetOrigStmtDetails(stmt, stmtType);
+                    }
 
-                    string httpReqString = $"{baseAddress}{serviceName}/{stmt.SimFinEntityId}/{subServiceName}?stype={stmtType}&ptype={stmt.PeriodType.Name}&fyear={stmt.FYear}&api-key={apiKey}";
-
-                    // Get and parse json for the original statement
-                    JObject simFinStmtDetails = await Libs.SimFinHttpReqExec.ExecSimFinHttpReqAsync<JObject>(httpReqString, dbConnectionString);
 
                     string periodEndDateStr = simFinStmtDetails["periodEndDate"].ToString();
-                    DateTime periodEndDate = DateTime.ParseExact(periodEndDateStr, "YYYY-MM-DD", CultureInfo.InvariantCulture);
+                    DateTime periodEndDate = DateTime.ParseExact(periodEndDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
                     List<JObject> metaTokens = simFinStmtDetails["metaData"].Children<JObject>().ToList();
 
                     // Don't understand when several meta can be used. Trying to catch this case.
@@ -249,12 +251,12 @@ namespace SecResServer.Jobs
                         throw new Exception("Found more then 1 meta. Exit");
                     }
 
-                    SimFinOriginalStmt origStmt = null;
+                    //SimFinOriginalStmt origStmt = null;
                     // !!!! The last will be saved only
                     foreach (JObject metaDataJObject in metaTokens)
                     {
                         string firstPublished = metaDataJObject["firstPublished"].ToString();
-                        DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "YYYY-MM-DD", CultureInfo.InvariantCulture);
+                        DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "yyyy-MM-dd", CultureInfo.InvariantCulture);
                         string fYear = metaDataJObject["fyear"].ToString();
                         int fYearInt = int.Parse(fYear);
                         string currencyStr = metaDataJObject["currency"].ToString();
@@ -262,9 +264,9 @@ namespace SecResServer.Jobs
 
                         int currencyId = await dbContext.Currencies.Where(c => c.CharCode == currencyStr).Select(c => c.Id).FirstOrDefaultAsync();
 
-                        int periodTypeId = await dbContext.PeriodTypes.Where(p => p.Name == periodTypeStr).Select(c => c.Id).FirstOrDefaultAsync();                       
+                        int periodTypeId = await dbContext.PeriodTypes.Where(p => p.Name == periodTypeStr).Select(c => c.Id).FirstOrDefaultAsync();
 
-                        origStmt = new SimFinOriginalStmt
+                        simFinOriginalStmt = new SimFinOriginalStmt
                         {
                             CurrencyId = currencyId,
                             FirstPublishedDate = firstPublishedDate,
@@ -274,10 +276,17 @@ namespace SecResServer.Jobs
                             PeriodTypeId = periodTypeId,
                             SimFinStmtRegistryId = stmt.Id
                         };
-                        await dbContext.AddAsync(origStmt);
+                        await dbContext.AddAsync(simFinOriginalStmt);
                         await dbContext.SaveChangesAsync();
                     }
+                }
 
+                if(simFinOriginalStmt.IsStmtDetailsLoaded == false)
+                { 
+                    if(simFinStmtDetails == null)
+                    {
+                        simFinStmtDetails = await GetOrigStmtDetails(stmt, stmtType);
+                    }
                     // Fill statement details? create or update
                     List<JObject> stmtRows = simFinStmtDetails["values"].Children<JObject>().ToList();
                     foreach (JObject rowDetails in stmtRows)
@@ -291,7 +300,7 @@ namespace SecResServer.Jobs
                         // Search for the statement details in DB
                         SimFinOrigStmtDetail simFinOrigStmtDetail = await dbContext.SimFinOrigStmtDetails
                                                                                     .Where(osd => osd.LineItemId == lineId
-                                                                                                    && osd.SimFinOriginalStmtId == origStmt.Id)
+                                                                                                    && osd.SimFinOriginalStmtId == simFinOriginalStmt.Id)
                                                                                     .FirstOrDefaultAsync();
 
                         if (simFinOrigStmtDetail == null)
@@ -322,6 +331,21 @@ namespace SecResServer.Jobs
                     }
                 }
             }
+        }
+
+        private async Task<JObject> GetOrigStmtDetails(SimFinStmtRegistry stmt, string stmtType)
+        {
+            string serviceName = "companies/id";
+            string subServiceName = "statements/original";
+
+            JObject simFinStmtDetails = null;
+
+            string httpReqString = $"{baseAddress}{serviceName}/{stmt.SimFinEntity.SimFinId}/{subServiceName}?stype={stmtType}&ptype={stmt.PeriodType.Name}&fyear={stmt.FYear}&api-key={apiKey}";
+
+            // Get and parse json for the original statement
+            simFinStmtDetails = await Libs.SimFinHttpReqExec.ExecSimFinHttpReqAsync<JObject>(httpReqString, dbConnectionString);
+
+            return simFinStmtDetails;
         }
     }
 }
