@@ -121,7 +121,7 @@ namespace SecResServer.Jobs
                     // Get a statement item
                     StmtEntity stmtEntity = JsonConvert.DeserializeObject<StmtEntity>(item.ToString());
 
-                    if (stmtEntity.Period == "TTM") continue;
+                    if (stmtEntity.Period.StartsWith("TTM")) continue;
 
 
                     // Search DB for the statement
@@ -322,13 +322,25 @@ namespace SecResServer.Jobs
                             {
                                 LineItemId = lineId,
                                 StmtDetailNameId = detailName.Id,
+                                SimFinOriginalStmtId = simFinOriginalStmt.Id,
                                 Value = value
                             };
 
-                            await dbContext.AddAsync(simFinOrigStmtDetail);
-                            await dbContext.SaveChangesAsync();
+                            try
+                            {
+                                await dbContext.AddAsync(simFinOrigStmtDetail);
+                                await dbContext.SaveChangesAsync();
+
+                            } catch (Exception e)
+                            {
+                                Console.WriteLine(e.ToString());
+                            }
                         }
                     }
+
+                    simFinOriginalStmt.IsStmtDetailsLoaded = true;
+                    dbContext.Entry(simFinOriginalStmt).State = EntityState.Modified;
+                    await dbContext.SaveChangesAsync();
                 }
             }
         }
