@@ -12,34 +12,52 @@ namespace SecResServer.Libs
     {
         public async static Task<T> ExecSimFinHttpReqAsync<T>(string uri, string dbConnectionStr)
         {
+            int tryCount = 10;
+            bool isCallSuccess = false;
             bool isToExit = false;
-            int callCnt = 0;
-
             T result;
+            Object result2 = null;
 
-            using (SecResDbContext dbContext = new SecResDbContext(dbConnectionStr))
+            while (isCallSuccess != true || tryCount == 0)
             {
-                while (!isToExit)
+                try
                 {
-                    int recQnt  = await dbContext.SimFinRequestLogs
-                                                 .Where(l => l.RequestDT >= DateTime.Now.AddDays(-1))
-                                                 .CountAsync();
-                    if (recQnt < 2000)
+                    using (SecResDbContext dbContext = new SecResDbContext(dbConnectionStr))
                     {
-                        isToExit = true;
-                    } else
-                    {
-                        await Task.Delay(60000);
+                        while (!isToExit)
+                        {
+                            int recQnt = await dbContext.SimFinRequestLogs
+                                                         .Where(l => l.RequestDT >= DateTime.Now.AddDays(-1))
+                                                         .CountAsync();
+                            if (recQnt < 2000)
+                            {
+                                isToExit = true;
+                            }
+                            else
+                            {
+                                await Task.Delay(60000);
+                            }
+                        }
+                        result2 = await HttpReqExec.GetAsync<T>(uri);
+                        SimFinRequestLog log1 = new SimFinRequestLog
+                        {
+                            RequestDT = DateTime.Now
+                        };
+                        await dbContext.AddAsync(log1);
+                        await dbContext.SaveChangesAsync();
+                        isCallSuccess = true;
                     }
-                }
-                result = await HttpReqExec.GetAsync<T>(uri);
-                SimFinRequestLog log1 = new SimFinRequestLog
+
+                } catch(Exception e)
                 {
-                    RequestDT = DateTime.Now
-                };
-                await dbContext.AddAsync(log1);
-                await dbContext.SaveChangesAsync();
+                    Console.WriteLine(e.ToString());
+                    tryCount--;
+                    if(tryCount == 0) throw e;
+                }
+ 
             }
+
+            result = (T)result2;
 
             return result;
         }

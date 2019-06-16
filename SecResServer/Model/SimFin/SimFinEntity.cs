@@ -22,7 +22,9 @@ namespace SecResServer.Model.SimFin
         public string Ticker { get; set; }
 
         [JsonProperty("name")]
-        public string Name { get; set; }        
+        public string Name { get; set; }
+
+        public bool IsStmtRegistryLoaded { get; set; }
 
         public DateTime LastUpdateDT { get; set; } = DateTime.Now;
         public DateTime? DeleteDT { get; set; } = null;

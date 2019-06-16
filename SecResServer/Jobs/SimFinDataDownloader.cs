@@ -99,7 +99,18 @@ namespace SecResServer.Jobs
                     string[] stmtTypes = new string[] { "pl", "bs", "cf" };
                     for(int itemCnt = 0; itemCnt < stmtTypes.Length; itemCnt++)
                     {
-                        await RegisterStmtAsync(stmtTypes[itemCnt], simFinStmtRegistry, simFinEntityId);
+                        try
+                        {
+                            await RegisterStmtAsync(stmtTypes[itemCnt], simFinStmtRegistry, simFinEntityId);
+                        } catch(Exception e)
+                        {
+                            Console.WriteLine(e.ToString());
+                            throw e;
+                        }
+
+                        
+
+
                     }
                 }
             }
@@ -108,10 +119,10 @@ namespace SecResServer.Jobs
             return totalQnt;
         }
 
-        private async Task RegisterStmtAsync(string stmtType, JObject jObject, int simFinEntityIdCode)
+        private async Task RegisterStmtAsync(string stmtTypeName, JObject jObject, int simFinEntityIdCode)
         {
             int simFinEntityId = 0;
-            JToken stmtTypeJson = jObject[stmtType];
+            JToken stmtTypeJson = jObject[stmtTypeName];
             List<StmtEntity> stmts = new List<StmtEntity>();
             using(SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
             {
@@ -122,7 +133,10 @@ namespace SecResServer.Jobs
                     StmtEntity stmtEntity = JsonConvert.DeserializeObject<StmtEntity>(item.ToString());
 
                     if (stmtEntity.Period.StartsWith("TTM")) continue;
-
+                    if (stmtEntity.Period.StartsWith("FY")) continue;
+                    if (stmtEntity.Period.StartsWith("H1")) continue;
+                    if (stmtEntity.Period.StartsWith("H2")) continue;
+                    if (stmtEntity.Period.StartsWith("9M")) continue;
 
                     // Search DB for the statement
                     SimFinStmtRegistry stmt = await dbContext
@@ -131,62 +145,71 @@ namespace SecResServer.Jobs
                                                     .Include(sr => sr.PeriodType)
                                                     .Where(sr => sr.PeriodType.Name == stmtEntity.Period
                                                                         && sr.FYear == stmtEntity.FYear
-                                                                        && sr.StmtType.Name == stmtType)
+                                                                        && sr.StmtType.Name == stmtTypeName
+                                                                        && sr.SimFinEntity.SimFinId == simFinEntityIdCode)
                                                     .FirstOrDefaultAsync();
 
                     // If a statement entry is not registered in DB then register
                     if (stmt == null)
                     {
                         // Get period type Id
-                        int periodId = await dbContext.PeriodTypes.Where(pt => pt.Name == stmtEntity.Period).Select(pt => pt.Id).FirstOrDefaultAsync();
-
+                        PeriodType periodType = await dbContext.PeriodTypes.Where(pt => pt.Name == stmtEntity.Period).FirstOrDefaultAsync();
                         // If the period type is not registered in DB then register it
-                        if(periodId == 0)
+                        if (periodType == null)
                         {
-                            PeriodType periodType = new PeriodType
+                            periodType = new PeriodType
                             {
                                 Name = stmtEntity.Period
                             };
                             await dbContext.AddAsync(periodType);
-                            await dbContext.SaveChangesAsync();
-                            periodId = periodType.Id;
+                            try
+                            {
+                                await dbContext.SaveChangesAsync();
+                            } catch (Exception e)
+                            {
+                                Console.WriteLine(e.ToString());
+                                throw e;
+                            }
                         }
 
                         // Get statement type Id
-                        int stmtTypeId = await dbContext.StmtTypes.Where(st => st.Name == stmtType).Select(st => st.Id).FirstOrDefaultAsync();
-
+                        StmtType stmtType = await dbContext.StmtTypes.Where(st => st.Name == stmtTypeName).FirstOrDefaultAsync();
                         // If the statement type is not registered then register in DB
-                        if(stmtTypeId == 0)
+                        if (stmtType == null)
                         {
-                            StmtType type = new StmtType
+                            stmtType = new StmtType
                             {
-                                Name = stmtType
+                                Name = stmtTypeName
                             };
-                            await dbContext.AddAsync(type);
-                            await dbContext.SaveChangesAsync();
-                            stmtTypeId = type.Id;
+                            await dbContext.AddAsync(stmtType);
+                            try
+                            {
+                                await dbContext.SaveChangesAsync();
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.ToString());
+                                throw e;
+                            }
                         }
 
-                        // Get reporting entity DB Id
-                        if(simFinEntityId == 0)
-                        {
-                            simFinEntityId = await dbContext.SimFinEntities
+                        SimFinEntity simFinEntity = await dbContext.SimFinEntities
                                                                 .Where(e => e.SimFinId == simFinEntityIdCode)
-                                                                .Select(e => e.Id)
-                                                                .FirstOrDefaultAsync();
-                        }
+                                                                .FirstOrDefaultAsync();                        
 
                         // Create an statement instance
                         stmt = new SimFinStmtRegistry
                         {
                             IsCalculated = stmtEntity.IsCalculated,
-                            PeriodTypeId = periodId,
-                            SimFinEntityId = simFinEntityId,
-                            StmtTypeId = stmtTypeId,
+                            PeriodTypeId = periodType.Id,
+                            PeriodType = periodType,
+                            SimFinEntity = simFinEntity,
+                            SimFinEntityId = simFinEntity.Id,
+                            StmtType = stmtType,
+                            StmtTypeId = stmtType.Id,
                             LoadDateTime = DateTime.Now,
                             IsStmtLoaded = false,
-                            FYear = stmtEntity.FYear,
-                            
+                            FYear = stmtEntity.FYear                            
                         };
 
                         try
@@ -195,6 +218,7 @@ namespace SecResServer.Jobs
                         } catch (Exception e)
                         {
                             Console.WriteLine(e.ToString());
+                            throw e;
                         }
 
                         try
@@ -205,13 +229,19 @@ namespace SecResServer.Jobs
                         {
                             Console.WriteLine(e.ToString());
                         }
-
-
                     }
 
                     // Load original statement
 
-                    await LoadOriginalStmtAsync(stmt, stmtType);
+                    try
+                    {
+                        await LoadOriginalStmtAsync(stmt, stmtTypeName);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                        throw e;
+                    }
 
                     // Load standardized statements                      
                 }
@@ -246,15 +276,16 @@ namespace SecResServer.Jobs
                     List<JObject> metaTokens = simFinStmtDetails["metaData"].Children<JObject>().ToList();
 
                     // Don't understand when several meta can be used. Trying to catch this case.
-                    if (metaTokens.Count > 1)
-                    {
-                        throw new Exception("Found more then 1 meta. Exit");
-                    }
+                    //if (metaTokens.Count > 1)
+                    //{
+                    //    throw new Exception("Found more then 1 meta. Exit");
+                    //}
 
                     //SimFinOriginalStmt origStmt = null;
                     // !!!! The last will be saved only
-                    foreach (JObject metaDataJObject in metaTokens)
-                    {
+                    JObject metaDataJObject = metaTokens[0];
+                    //foreach (JObject metaDataJObject in metaTokens)
+                    //{
                         string firstPublished = metaDataJObject["firstPublished"].ToString();
                         DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "yyyy-MM-dd", CultureInfo.InvariantCulture);
                         string fYear = metaDataJObject["fyear"].ToString();
@@ -277,8 +308,16 @@ namespace SecResServer.Jobs
                             SimFinStmtRegistryId = stmt.Id
                         };
                         await dbContext.AddAsync(simFinOriginalStmt);
-                        await dbContext.SaveChangesAsync();
-                    }
+                        try
+                        {
+                            await dbContext.SaveChangesAsync();
+                        } catch(Exception e)
+                        {
+                            Console.WriteLine(e.ToString());
+                            throw e;
+                        }
+                        
+                    //}
                 }
 
                 if(simFinOriginalStmt.IsStmtDetailsLoaded == false)
@@ -315,7 +354,15 @@ namespace SecResServer.Jobs
                                     Name = lineItemNameStr.Trim()
                                 };
                                 await dbContext.AddAsync(detailName);
-                                await dbContext.SaveChangesAsync();
+                                try
+                                { 
+                                    await dbContext.SaveChangesAsync();
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e.ToString());
+                                    throw e;
+                                }
                             }
 
                             simFinOrigStmtDetail = new SimFinOrigStmtDetail
@@ -329,11 +376,20 @@ namespace SecResServer.Jobs
                             try
                             {
                                 await dbContext.AddAsync(simFinOrigStmtDetail);
-                                await dbContext.SaveChangesAsync();
+                                try
+                                {
+                                    await dbContext.SaveChangesAsync();
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e.ToString());
+                                    throw e;
+                                }
 
                             } catch (Exception e)
                             {
                                 Console.WriteLine(e.ToString());
+                                throw e;
                             }
                         }
                     }
