@@ -15,7 +15,7 @@ namespace SecResServer.Model.SimFin
         public SimFinEntity SimFinEntity { get; set; }
 
         [ForeignKey("SimFinEntity")]
-        public int SimFinId { get; set; }
+        public int SimFinEntityId { get; set; }
 
         public string Name { get; set; }
 
