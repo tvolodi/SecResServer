@@ -33,7 +33,9 @@ namespace SecResServer.Model.SimFin
 
         public DateTime LoadDateTime { get; set; }
 
-        public bool IsStmtLoaded { get; set; }
+        public DateTime OrigStmtLoadDT { get; set; } = DateTime.MinValue;
+
+        public DateTime StdStmtLoadDT { get; set; } = DateTime.MinValue;
 
         public bool IsCalculated { get; set; }
 

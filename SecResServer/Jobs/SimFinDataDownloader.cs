@@ -82,12 +82,17 @@ namespace SecResServer.Jobs
             int totalQnt = 0;
             string serviceName = "companies/id";
             string subServiceName = "statements/list";
+
+            int daysQntToUpdate = 100;
             
             int simFinEntityId = 0;
                  
             using (SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
             {
-                List<SimFinEntity> simFinEntities = await dbContext.SimFinEntities.ToListAsync();
+                List<SimFinEntity> simFinEntities = await dbContext.SimFinEntities
+                                                                   .Where(sfe => sfe.LastUpdateDT > DateTime.Now.AddDays(-daysQntToUpdate)
+                                                                                                || sfe.IsStmtRegistryLoaded == false)
+                                                                   .ToListAsync();
                 for (int i = 0; i < simFinEntities.Count; i++)
                 {
                     SimFinEntity entity = simFinEntities[i];
@@ -107,11 +112,13 @@ namespace SecResServer.Jobs
                             Console.WriteLine(e.ToString());
                             throw e;
                         }
-
-                        
-
-
                     }
+
+                    // Do update that statement registry for this entity is loaded for now.
+                    entity.IsStmtRegistryLoaded = true;
+                    entity.LastUpdateDT = DateTime.Now;
+                    dbContext.Entry(entity).State = EntityState.Modified;
+                    await dbContext.SaveChangesAsync();
                 }
             }
 
@@ -207,8 +214,7 @@ namespace SecResServer.Jobs
                             SimFinEntityId = simFinEntity.Id,
                             StmtType = stmtType,
                             StmtTypeId = stmtType.Id,
-                            LoadDateTime = DateTime.Now,
-                            IsStmtLoaded = false,
+                            LoadDateTime = DateTime.Now,                            
                             FYear = stmtEntity.FYear                            
                         };
 
@@ -232,10 +238,26 @@ namespace SecResServer.Jobs
                     }
 
                     // Load original statement
-
                     try
                     {
                         await LoadOriginalStmtAsync(stmt, stmtTypeName);
+                        stmt.OrigStmtLoadDT = DateTime.Now;
+                        dbContext.Entry(stmt).State = EntityState.Modified;
+                        await dbContext.SaveChangesAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                        throw e;
+                    }
+
+                    // Load standardized statement
+                    try
+                    {
+                        await LoadStdStmtAsync(stmt, stmtTypeName);
+                        stmt.StdStmtLoadDT = DateTime.Now;
+                        dbContext.Entry(stmt).State = EntityState.Modified;
+                        await dbContext.SaveChangesAsync();
                     }
                     catch (Exception e)
                     {
@@ -244,6 +266,162 @@ namespace SecResServer.Jobs
                     }
 
                     // Load standardized statements                      
+                }
+            }
+        }
+
+        private async Task LoadStdStmtAsync(SimFinStmtRegistry stmt, string stmtTypeName)
+        {
+            // Check that the statement is not loaded already
+            bool isToLoad = false;
+            SimFinOriginalStmt simFinOriginalStmt = null;
+            using (SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
+            {
+                // Get original statement for this type of statement
+                simFinOriginalStmt = await dbContext.SimFinOriginalStmts
+                                                    .Where(os => os.SimFinStmtRegistryId == stmt.Id)
+                                                    .FirstOrDefaultAsync();
+
+                // If the original statement is not created then load from the site and create
+
+                JObject simFinStmtDetails = null;
+                if (simFinOriginalStmt == null)
+                {
+                    if (simFinStmtDetails == null)
+                    {
+                        // Read the statement data from SimFin site -> return json object
+                        simFinStmtDetails = await GetOrigStmtDetails(stmt, stmtType);
+                    }
+
+
+                    string periodEndDateStr = simFinStmtDetails["periodEndDate"].ToString();
+                    DateTime periodEndDate = DateTime.ParseExact(periodEndDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    List<JObject> metaTokens = simFinStmtDetails["metaData"].Children<JObject>().ToList();
+
+                    // Don't understand when several meta can be used. Trying to catch this case.
+                    //if (metaTokens.Count > 1)
+                    //{
+                    //    throw new Exception("Found more then 1 meta. Exit");
+                    //}
+
+                    //SimFinOriginalStmt origStmt = null;
+                    // !!!! The last will be saved only
+                    JObject metaDataJObject = metaTokens[0];
+                    //foreach (JObject metaDataJObject in metaTokens)
+                    //{
+                    string firstPublished = metaDataJObject["firstPublished"].ToString();
+                    DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    string fYear = metaDataJObject["fyear"].ToString();
+                    int fYearInt = int.Parse(fYear);
+                    string currencyStr = metaDataJObject["currency"].ToString();
+                    string periodTypeStr = metaDataJObject["period"].ToString();
+
+                    int currencyId = await dbContext.Currencies.Where(c => c.CharCode == currencyStr).Select(c => c.Id).FirstOrDefaultAsync();
+
+                    int periodTypeId = await dbContext.PeriodTypes.Where(p => p.Name == periodTypeStr).Select(c => c.Id).FirstOrDefaultAsync();
+
+                    simFinOriginalStmt = new SimFinOriginalStmt
+                    {
+                        CurrencyId = currencyId,
+                        FirstPublishedDate = firstPublishedDate,
+                        FYear = fYearInt,
+                        IsStmtDetailsLoaded = false,
+                        PeriodEndDate = periodEndDate,
+                        PeriodTypeId = periodTypeId,
+                        SimFinStmtRegistryId = stmt.Id
+                    };
+                    await dbContext.AddAsync(simFinOriginalStmt);
+                    try
+                    {
+                        await dbContext.SaveChangesAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                        throw e;
+                    }
+
+                    //}
+                }
+
+                if (simFinOriginalStmt.IsStmtDetailsLoaded == false)
+                {
+                    if (simFinStmtDetails == null)
+                    {
+                        simFinStmtDetails = await GetOrigStmtDetails(stmt, stmtType);
+                    }
+                    // Fill statement details? create or update
+                    List<JObject> stmtRows = simFinStmtDetails["values"].Children<JObject>().ToList();
+                    foreach (JObject rowDetails in stmtRows)
+                    {
+                        string lineIdStr = rowDetails["lineItemId"].ToString();
+                        int lineId = int.Parse(lineIdStr);
+                        string lineItemNameStr = rowDetails["lineItemName"].ToString();
+                        string valueStr = rowDetails["value"].ToString();
+                        double value = double.Parse(valueStr);
+
+                        // Search for the statement details in DB
+                        SimFinOrigStmtDetail simFinOrigStmtDetail = await dbContext.SimFinOrigStmtDetails
+                                                                                    .Where(osd => osd.LineItemId == lineId
+                                                                                                    && osd.SimFinOriginalStmtId == simFinOriginalStmt.Id)
+                                                                                    .FirstOrDefaultAsync();
+
+                        if (simFinOrigStmtDetail == null)
+                        {
+                            StmtDetailName detailName = await dbContext.StmtDetailNames
+                                                                        .Where(dn => dn.Name == lineItemNameStr)
+                                                                        .FirstOrDefaultAsync();
+                            if (detailName == null)
+                            {
+                                detailName = new StmtDetailName
+                                {
+                                    Name = lineItemNameStr.Trim()
+                                };
+                                await dbContext.AddAsync(detailName);
+                                try
+                                {
+                                    await dbContext.SaveChangesAsync();
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e.ToString());
+                                    throw e;
+                                }
+                            }
+
+                            simFinOrigStmtDetail = new SimFinOrigStmtDetail
+                            {
+                                LineItemId = lineId,
+                                StmtDetailNameId = detailName.Id,
+                                SimFinOriginalStmtId = simFinOriginalStmt.Id,
+                                Value = value
+                            };
+
+                            try
+                            {
+                                await dbContext.AddAsync(simFinOrigStmtDetail);
+                                try
+                                {
+                                    await dbContext.SaveChangesAsync();
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e.ToString());
+                                    throw e;
+                                }
+
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.ToString());
+                                throw e;
+                            }
+                        }
+                    }
+
+                    simFinOriginalStmt.IsStmtDetailsLoaded = true;
+                    dbContext.Entry(simFinOriginalStmt).State = EntityState.Modified;
+                    await dbContext.SaveChangesAsync();
                 }
             }
         }
@@ -267,6 +445,7 @@ namespace SecResServer.Jobs
                 {
                     if (simFinStmtDetails == null)
                     {
+                        // Read the statement data from SimFin site -> return json object
                         simFinStmtDetails = await GetOrigStmtDetails(stmt, stmtType);
                     }
 
