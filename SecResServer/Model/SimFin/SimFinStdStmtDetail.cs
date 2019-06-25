@@ -17,16 +17,24 @@ namespace SecResServer.Model.SimFin
         [ForeignKey("SimFinStdStmt")]
         public int SimFinStdStmtId { get; set; }
 
-        public SimFinStmtDetailType SimFinStmtDetailType { get; set; }
+        public StmtDetailName StmtDetailName { get; set; }
 
-        [ForeignKey("SimFinStmtDetailType")]
-        public int SimFinStmtDetailTypeId { get; set; }
+        [ForeignKey("StmtDetailName")]
+        public int StmtDetailNameId { get; set; }
 
         public int TId { get; set; }
 
+        public int UId { get; set; }
+
+        public int DisplayLevel { get; set; }
+
         public int ParentTId { get; set; }
 
-        public double Value { get; set; }
+        public double ValueAssigned { get; set; }
+
+        public double ValueCalculated { get; set; }
+
+        public double ValueChosen { get; set; }
 
     }
 }

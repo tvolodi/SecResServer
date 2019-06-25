@@ -58,6 +58,8 @@ namespace SecResServer.Model
 
         public DbSet<SimFinStmtDetailType> SimFinStmtDetailTypes { get; set; }
 
+        public DbSet<SimFinStmtIndustryTemplate> SimFinStmtIndustryTemplates { get; set; }
+
         public DbSet<SimFinStmtRegistry> SimFinStmtRegistries { get; set; }
 
         public DbSet<SimFinRequestLog> SimFinRequestLogs { get; set; }

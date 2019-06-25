@@ -12,13 +12,20 @@ namespace SecResServer.Model.SimFin
         [Key]
         public int Id { get; set; }
 
-        public SimFinStmtRegistry GetFinStmtRegistry { get; set; }
+        public SimFinStmtRegistry SimFinStmtRegistry { get; set; }
 
-        [ForeignKey("GetFinStmtRegistry")]
-        public int GetFinStmtRegistryId { get; set; }
+        [ForeignKey("SimFinStmtRegistry")]
+        public int SimFinStmtRegistryId { get; set; }
 
         [ForeignKey("SimFinStmtIndustryTemplate")]
         public int SimFinStmtIndustryTemplateId { get; set; }
+
+        public int FYear { get; set; }
+
+        public PeriodType PeriodType { get; set; }
+
+        [ForeignKey("PeriodType")]
+        public int PeriodTypeId { get; set; }
 
         public DateTime PeriodEndDate { get; set; }
 
