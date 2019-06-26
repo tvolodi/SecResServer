@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SecResServer.Model;
@@ -9,9 +10,10 @@ using SecResServer.Model;
 namespace SecResServer.Migrations
 {
     [DbContext(typeof(SecResDbContext))]
-    partial class SecResDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190626021932_SimFinStdStmt1")]
+    partial class SimFinStdStmt1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -264,8 +266,6 @@ namespace SecResServer.Migrations
 
                     b.HasIndex("PeriodTypeId");
 
-                    b.HasIndex("SimFinStmtIndustryTemplateId");
-
                     b.HasIndex("SimFinStmtRegistryId");
 
                     b.ToTable("SimFinStdStmts");
@@ -435,11 +435,6 @@ namespace SecResServer.Migrations
                     b.HasOne("SecResServer.Model.PeriodType", "PeriodType")
                         .WithMany()
                         .HasForeignKey("PeriodTypeId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SecResServer.Model.SimFin.SimFinStmtIndustryTemplate", "SimFinStmtIndustryTemplate")
-                        .WithMany()
-                        .HasForeignKey("SimFinStmtIndustryTemplateId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SecResServer.Model.SimFin.SimFinStmtRegistry", "SimFinStmtRegistry")

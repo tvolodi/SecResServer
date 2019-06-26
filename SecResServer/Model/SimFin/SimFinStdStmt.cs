@@ -17,6 +17,8 @@ namespace SecResServer.Model.SimFin
         [ForeignKey("SimFinStmtRegistry")]
         public int SimFinStmtRegistryId { get; set; }
 
+        public SimFinStmtIndustryTemplate SimFinStmtIndustryTemplate { get; set; }
+
         [ForeignKey("SimFinStmtIndustryTemplate")]
         public int SimFinStmtIndustryTemplateId { get; set; }
 

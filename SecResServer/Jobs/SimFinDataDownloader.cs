@@ -130,6 +130,9 @@ namespace SecResServer.Jobs
         {
             int simFinEntityId = 0;
             JToken stmtTypeJson = jObject[stmtTypeName];
+
+            if (stmtTypeJson == null) return;
+
             List<StmtEntity> stmts = new List<StmtEntity>();
             using(SecResDbContext dbContext = new SecResDbContext(dbConnectionString))
             {
@@ -293,8 +296,10 @@ namespace SecResServer.Jobs
                         simFinStmtDetails = await GetStdStmtDetails(stmt, stmtTypeName);
                     }
 
+                    if (simFinStmtDetails == null) return;
+
                     List<JObject> calculationSchemeList = simFinStmtDetails["calculationScheme"].Children<JObject>().ToList();
-                    if(calculationSchemeList == null || calculationSchemeList.Count == 0)
+                    if(calculationSchemeList != null && calculationSchemeList.Count > 0)
                     {
                         Console.WriteLine($"Multiple scheme for std statement for {stmt.SimFinEntityId} stmt type {stmtTypeName} year {stmt.FYear}");
                         throw new Exception("multiple scheme");
@@ -303,27 +308,8 @@ namespace SecResServer.Jobs
 
                     string periodEndDateStr = simFinStmtDetails["periodEndDate"].ToString();
                     DateTime periodEndDate = DateTime.ParseExact(periodEndDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                    List<JObject> metaTokens = simFinStmtDetails["metaData"].Children<JObject>().ToList();
 
-                    // Don't understand when several meta can be used. Trying to catch this case.
-                    //if (metaTokens.Count > 1)
-                    //{
-                    //    throw new Exception("Found more then 1 meta. Exit");
-                    //}
-
-                    //SimFinOriginalStmt origStmt = null;
-                    // !!!! The last will be saved only
-                    JObject metaDataJObject = metaTokens[0];
-                    //foreach (JObject metaDataJObject in metaTokens)
-                    //{
-                    //string firstPublished = metaDataJObject["firstPublished"].ToString();
-                    //DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                    // string fYear = metaDataJObject["fyear"].ToString();
                     int fYearInt = stmt.FYear;
-                    // string currencyStr = metaDataJObject["currency"].ToString();
-                    // string periodTypeStr = metaDataJObject["period"].ToString();
-
-                    // int currencyId = await dbContext.Currencies.Where(c => c.CharCode == currencyStr).Select(c => c.Id).FirstOrDefaultAsync();
 
                     int periodTypeId = stmt.PeriodTypeId;
 
@@ -372,6 +358,9 @@ namespace SecResServer.Jobs
                     {
                         simFinStmtDetails = await GetStdStmtDetails(stmt, stmtTypeName);
                     }
+
+                    if (simFinStmtDetails == null) return;
+
                     // Fill statement details? create or update
                     List<JObject> stmtRows = simFinStmtDetails["values"].Children<JObject>().ToList();
                     foreach (JObject rowDetails in stmtRows)
@@ -401,12 +390,15 @@ namespace SecResServer.Jobs
                         int displayLevel = int.Parse(displayLevelStr);
 
                         string valueAssignedStr = rowDetails["valueAssigned"].ToString();
+                        if (valueAssignedStr == "") valueAssignedStr = "0";
                         double valueAssigned = double.Parse(valueAssignedStr);
 
                         string valueCalculatedStr = rowDetails["valueCalculated"].ToString();
+                        if (valueCalculatedStr == "") valueCalculatedStr = "0";
                         double valueCalculated = double.Parse(valueCalculatedStr);
 
                         string valueChosenStr = rowDetails["valueChosen"].ToString();
+                        if (valueChosenStr == "") valueChosenStr = "0";
                         double valueChosen = double.Parse(valueChosenStr);
 
                         // Search for the statement details in DB
@@ -489,6 +481,7 @@ namespace SecResServer.Jobs
                         simFinStmtDetails = await GetOrigStmtDetails(stmt, stmtType);
                     }
 
+                    if (simFinStmtDetails == null) return;
 
                     string periodEndDateStr = simFinStmtDetails["periodEndDate"].ToString();
                     DateTime periodEndDate = DateTime.ParseExact(periodEndDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
@@ -545,6 +538,9 @@ namespace SecResServer.Jobs
                     {
                         simFinStmtDetails = await GetOrigStmtDetails(stmt, stmtType);
                     }
+
+                    if (simFinStmtDetails == null) return;
+
                     // Fill statement details? create or update
                     List<JObject> stmtRows = simFinStmtDetails["values"].Children<JObject>().ToList();
                     foreach (JObject rowDetails in stmtRows)
