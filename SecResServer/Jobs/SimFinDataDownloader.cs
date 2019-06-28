@@ -18,6 +18,8 @@ namespace SecResServer.Jobs
         private string dbConnectionString = string.Empty;
         private string baseAddress = "https://simfin.com/api/v1/";
 
+        private const string logFileName = "SimFinImportLog.txt";
+
 
         string apiKey = "6sFg1i77TDYXdtBfRb1Ga93lD4XGTuZZ";
 
@@ -109,7 +111,7 @@ namespace SecResServer.Jobs
                             await RegisterStmtAsync(stmtTypes[itemCnt], simFinStmtRegistry, simFinEntityId);
                         } catch(Exception e)
                         {
-                            Console.WriteLine(e.ToString());
+                            await WriteLog(e.ToString());
                             throw e;
                         }
                     }
@@ -150,7 +152,8 @@ namespace SecResServer.Jobs
 
                     // Search DB for the statement
                     SimFinStmtRegistry stmt = await dbContext
-                                                    .SimFinStmtRegistries.Include(sr => sr.SimFinEntity)
+                                                    .SimFinStmtRegistries
+                                                    .Include(sr => sr.SimFinEntity)
                                                     .Include(sr => sr.StmtType)
                                                     .Include(sr => sr.PeriodType)
                                                     .Where(sr => sr.PeriodType.Name == stmtEntity.Period
@@ -158,6 +161,12 @@ namespace SecResServer.Jobs
                                                                         && sr.StmtType.Name == stmtTypeName
                                                                         && sr.SimFinEntity.SimFinId == simFinEntityIdCode)
                                                     .FirstOrDefaultAsync();
+
+                    //if(stmt != null && stmt.FYear == 2010 && stmt.PeriodType.Name == "Q1" && stmt.StmtType.Name == "pl")
+                    //{
+                    //    Console.WriteLine("That is!");
+                    //}
+
 
                     // If a statement entry is not registered in DB then register
                     if (stmt == null)
@@ -177,7 +186,7 @@ namespace SecResServer.Jobs
                                 await dbContext.SaveChangesAsync();
                             } catch (Exception e)
                             {
-                                Console.WriteLine(e.ToString());
+                                await WriteLog(e.ToString());
                                 throw e;
                             }
                         }
@@ -198,7 +207,7 @@ namespace SecResServer.Jobs
                             }
                             catch (Exception e)
                             {
-                                Console.WriteLine(e.ToString());
+                                await WriteLog(e.ToString());
                                 throw e;
                             }
                         }
@@ -226,7 +235,7 @@ namespace SecResServer.Jobs
                             await dbContext.AddAsync(stmt);
                         } catch (Exception e)
                         {
-                            Console.WriteLine(e.ToString());
+                            await WriteLog(e.ToString());
                             throw e;
                         }
 
@@ -236,7 +245,7 @@ namespace SecResServer.Jobs
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine(e.ToString());
+                            await WriteLog(e.ToString());
                         }
                     }
 
@@ -250,7 +259,7 @@ namespace SecResServer.Jobs
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.ToString());
+                        await WriteLog(e.ToString() + $" for FYear = {stmtEntity.FYear} period = {stmt.PeriodType.Name}  SimFinId = {stmt.SimFinEntity.SimFinId}" );
                         throw e;
                     }
 
@@ -264,13 +273,19 @@ namespace SecResServer.Jobs
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.ToString());
+                        await WriteLog(e.ToString());
                         throw e;
-                    }
-
-                    // Load standardized statements                      
+                    }                   
                 }
             }
+        }
+
+        private async Task WriteLog(string logText)
+        {
+            await System.IO.File.AppendAllTextAsync(logFileName, logText);
+            await System.IO.File.AppendAllTextAsync(logFileName, "\n");
+            await System.IO.File.AppendAllTextAsync(logFileName, "==============================================================");
+            await System.IO.File.AppendAllTextAsync(logFileName, "\n");
         }
 
         private async Task LoadStdStmtAsync(SimFinStmtRegistry stmt, string stmtTypeName)
@@ -301,8 +316,8 @@ namespace SecResServer.Jobs
                     List<JObject> calculationSchemeList = simFinStmtDetails["calculationScheme"].Children<JObject>().ToList();
                     if(calculationSchemeList != null && calculationSchemeList.Count > 0)
                     {
-                        Console.WriteLine($"Multiple scheme for std statement for {stmt.SimFinEntityId} stmt type {stmtTypeName} year {stmt.FYear}");
-                        throw new Exception("multiple scheme");
+                        await WriteLog($"Multiple scheme for std statement for {stmt.SimFinEntity.SimFinId} stmt type {stmtTypeName} year {stmt.FYear}");
+                        // throw new Exception("multiple scheme");
                     }
 
 
@@ -345,7 +360,7 @@ namespace SecResServer.Jobs
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.ToString());
+                        await WriteLog(e.ToString());
                         throw e;
                     }
 
@@ -429,7 +444,7 @@ namespace SecResServer.Jobs
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine(ex.ToString());
+                                await WriteLog(ex.ToString());
                                 throw ex;
 
                             }
@@ -493,41 +508,50 @@ namespace SecResServer.Jobs
                     //    throw new Exception("Found more then 1 meta. Exit");
                     //}
 
-                    //SimFinOriginalStmt origStmt = null;
-                    // !!!! The last will be saved only
+                    // !!!! Ignore meta data and calculation scheme. They are to get known how everything was calculated for this period
                     JObject metaDataJObject = metaTokens[0];
-                    //foreach (JObject metaDataJObject in metaTokens)
-                    //{
-                        string firstPublished = metaDataJObject["firstPublished"].ToString();
-                        DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                        string fYear = metaDataJObject["fyear"].ToString();
-                        int fYearInt = int.Parse(fYear);
-                        string currencyStr = metaDataJObject["currency"].ToString();
-                        string periodTypeStr = metaDataJObject["period"].ToString();
 
-                        int currencyId = await dbContext.Currencies.Where(c => c.CharCode == currencyStr).Select(c => c.Id).FirstOrDefaultAsync();
+                    string firstPublished = metaDataJObject["firstPublished"].ToString();
+                    DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    string fYear = metaDataJObject["fyear"].ToString();
+                    int fYearInt = int.Parse(fYear);
+                    string currencyStr = metaDataJObject["currency"].ToString();
+                    string periodTypeStr = metaDataJObject["period"].ToString();
 
-                        int periodTypeId = await dbContext.PeriodTypes.Where(p => p.Name == periodTypeStr).Select(c => c.Id).FirstOrDefaultAsync();
+                    int currencyId = await dbContext.Currencies.Where(c => c.CharCode == currencyStr).Select(c => c.Id).FirstOrDefaultAsync();
 
-                        simFinOriginalStmt = new SimFinOriginalStmt
+                    PeriodType periodType = await dbContext.PeriodTypes.Where(p => p.Name == periodTypeStr).FirstOrDefaultAsync();
+                    if(periodType == null)
+                    {
+                        periodType = new PeriodType
                         {
-                            CurrencyId = currencyId,
-                            FirstPublishedDate = firstPublishedDate,
-                            FYear = fYearInt,
-                            IsStmtDetailsLoaded = false,
-                            PeriodEndDate = periodEndDate,
-                            PeriodTypeId = periodTypeId,
-                            SimFinStmtRegistryId = stmt.Id
+                            Name = periodTypeStr
                         };
-                        await dbContext.AddAsync(simFinOriginalStmt);
-                        try
-                        {
-                            await dbContext.SaveChangesAsync();
-                        } catch(Exception e)
-                        {
-                            Console.WriteLine(e.ToString());
-                            throw e;
-                        }
+
+                        await dbContext.AddAsync(periodType);
+                        await dbContext.SaveChangesAsync();
+                    }
+
+
+                    simFinOriginalStmt = new SimFinOriginalStmt
+                    {
+                        CurrencyId = currencyId,
+                        FirstPublishedDate = firstPublishedDate,
+                        FYear = fYearInt,
+                        IsStmtDetailsLoaded = false,
+                        PeriodEndDate = periodEndDate,
+                        PeriodTypeId = periodType.Id,
+                        SimFinStmtRegistryId = stmt.Id
+                    };
+                    await dbContext.AddAsync(simFinOriginalStmt);
+                    try
+                    {
+                        await dbContext.SaveChangesAsync();
+                    } catch(Exception e)
+                    {
+                    await WriteLog(e.ToString() + $" for FYear = {fYearInt} period = {periodType.Name}  SimFinId = {stmt.SimFinEntity.SimFinId} ");
+                    throw e;
+                    }
                         
                     //}
                 }
@@ -575,7 +599,7 @@ namespace SecResServer.Jobs
                                 }
                                 catch (Exception e)
                                 {
-                                    Console.WriteLine(e.ToString());
+                                    await WriteLog(e.ToString());
                                     throw e;
                                 }
                             }
@@ -597,13 +621,13 @@ namespace SecResServer.Jobs
                                 }
                                 catch (Exception e)
                                 {
-                                    Console.WriteLine(e.ToString());
+                                    await WriteLog(e.ToString());
                                     throw e;
                                 }
 
                             } catch (Exception e)
                             {
-                                Console.WriteLine(e.ToString());
+                                await WriteLog(e.ToString());
                                 throw e;
                             }
                         }

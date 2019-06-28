@@ -1,0 +1,553 @@
+Multiple scheme for std statement for 1 stmt type pl year 2018System.Exception: multiple scheme
+   at SecResServer.Jobs.SimFinDataDownloader.LoadStdStmtAsync(SimFinStmtRegistry stmt, String stmtTypeName) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 314
+   at SecResServer.Jobs.SimFinDataDownloader.RegisterStmtAsync(String stmtTypeName, JObject jObject, Int32 simFinEntityIdCode) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 262System.Exception: multiple scheme
+   at SecResServer.Jobs.SimFinDataDownloader.RegisterStmtAsync(String stmtTypeName, JObject jObject, Int32 simFinEntityIdCode) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 270
+   at SecResServer.Jobs.SimFinDataDownloader.DownloadAllStmtAsync() in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 111Multiple scheme for std statement for 171401 stmt type pl year 2018Multiple scheme for std statement for 171401 stmt type pl year 2017Multiple scheme for std statement for 171401 stmt type pl year 2016Multiple scheme for std statement for 171401 stmt type pl year 2015Multiple scheme for std statement for 171401 stmt type pl year 2014Multiple scheme for std statement for 171401 stmt type pl year 2013Multiple scheme for std statement for 171401 stmt type pl year 2012Multiple scheme for std statement for 171401 stmt type pl year 2011Multiple scheme for std statement for 171401 stmt type pl year 2010Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while updating the entries. See the inner exception for details. ---> Npgsql.PostgresException: 23503: insert or update on table "SimFinOriginalStmts" violates foreign key constraint "FK_SimFinOriginalStmts_PeriodTypes_PeriodTypeId"
+   at Npgsql.NpgsqlConnector.<>c__DisplayClass161_0.<<ReadMessage>g__ReadMessageLong|0>d.MoveNext()
+--- End of stack trace from previous location where exception was thrown ---
+   at Npgsql.NpgsqlConnector.<>c__DisplayClass161_0.<<ReadMessage>g__ReadMessageLong|0>d.MoveNext() in C:\projects\npgsql\src\Npgsql\NpgsqlConnector.cs:line 1032
+--- End of stack trace from previous location where exception was thrown ---
+   at Npgsql.NpgsqlDataReader.NextResult(Boolean async, Boolean isConsuming) in C:\projects\npgsql\src\Npgsql\NpgsqlDataReader.cs:line 490
+   at Npgsql.NpgsqlCommand.ExecuteDbDataReader(CommandBehavior behavior, Boolean async, CancellationToken cancellationToken) in C:\projects\npgsql\src\Npgsql\NpgsqlCommand.cs:line 1215
+   at Microsoft.EntityFrameworkCore.Storage.Internal.RelationalCommand.ExecuteAsync(IRelationalConnection connection, DbCommandMethod executeMethod, IReadOnlyDictionary`2 parameterValues, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(DbContext _, ValueTuple`2 parameters, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken) in C:\projects\npgsql-entityframeworkcore-postgresql\src\EFCore.PG\Storage\Internal\NpgsqlExecutionStrategy.cs:line 49
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IReadOnlyList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at SecResServer.Jobs.SimFinDataDownloader.LoadOriginalStmtAsync(SimFinStmtRegistry stmt, String stmtType) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 530Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException: Database operation expected to affect 1 row(s) but actually affected 0 row(s). Data may have been modified or deleted since entities were loaded. See http://go.microsoft.com/fwlink/?LinkId=527962 for information on understanding and handling optimistic concurrency exceptions.
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal.NpgsqlModificationCommandBatch.ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken) in C:\projects\npgsql-entityframeworkcore-postgresql\src\EFCore.PG\Update\Internal\NpgsqlModificationCommandBatch.cs:line 147
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(DbContext _, ValueTuple`2 parameters, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken) in C:\projects\npgsql-entityframeworkcore-postgresql\src\EFCore.PG\Storage\Internal\NpgsqlExecutionStrategy.cs:line 49
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IReadOnlyList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at SecResServer.Jobs.SimFinDataDownloader.LoadOriginalStmtAsync(SimFinStmtRegistry stmt, String stmtType) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 524
+   at SecResServer.Jobs.SimFinDataDownloader.RegisterStmtAsync(String stmtTypeName, JObject jObject, Int32 simFinEntityIdCode) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 248
+Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException: Database operation expected to affect 1 row(s) but actually affected 0 row(s). Data may have been modified or deleted since entities were loaded. See http://go.microsoft.com/fwlink/?LinkId=527962 for information on understanding and handling optimistic concurrency exceptions.
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal.NpgsqlModificationCommandBatch.ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken) in C:\projects\npgsql-entityframeworkcore-postgresql\src\EFCore.PG\Update\Internal\NpgsqlModificationCommandBatch.cs:line 147
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(DbContext _, ValueTuple`2 parameters, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken) in C:\projects\npgsql-entityframeworkcore-postgresql\src\EFCore.PG\Storage\Internal\NpgsqlExecutionStrategy.cs:line 49
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IReadOnlyList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at SecResServer.Jobs.SimFinDataDownloader.LoadOriginalStmtAsync(SimFinStmtRegistry stmt, String stmtType) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 526
+   at SecResServer.Jobs.SimFinDataDownloader.RegisterStmtAsync(String stmtTypeName, JObject jObject, Int32 simFinEntityIdCode) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 248
+==============================================================
+Multiple scheme for std statement for 171401 stmt type pl year 2010
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 171401 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 810159 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 810159 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 810159 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 810159 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 558120 stmt type pl year 2018
+==============================================================
+Multiple scheme for std statement for 558120 stmt type pl year 2017
+==============================================================
+Multiple scheme for std statement for 558120 stmt type pl year 2016
+==============================================================
+Multiple scheme for std statement for 558120 stmt type pl year 2015
+==============================================================
+Multiple scheme for std statement for 558120 stmt type pl year 2014
+==============================================================
+Multiple scheme for std statement for 558120 stmt type pl year 2013
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 558120 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 101599 stmt type pl year 2016
+==============================================================
+Multiple scheme for std statement for 101599 stmt type pl year 2015
+==============================================================
+Multiple scheme for std statement for 101599 stmt type pl year 2014
+==============================================================
+Multiple scheme for std statement for 101599 stmt type pl year 2013
+==============================================================
+Multiple scheme for std statement for 101599 stmt type pl year 2012
+==============================================================
+Multiple scheme for std statement for 101599 stmt type pl year 2011
+==============================================================
+Multiple scheme for std statement for 101599 stmt type pl year 2010
+==============================================================
+Multiple scheme for std statement for 101599 stmt type pl year 2010
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 101599 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 125293 stmt type pl year 2017
+==============================================================
+Multiple scheme for std statement for 125293 stmt type pl year 2016
+==============================================================
+Multiple scheme for std statement for 125293 stmt type pl year 2015
+==============================================================
+Multiple scheme for std statement for 125293 stmt type pl year 2014
+==============================================================
+Multiple scheme for std statement for 125293 stmt type pl year 2013
+==============================================================
+Multiple scheme for std statement for 125293 stmt type pl year 2012
+==============================================================
+Multiple scheme for std statement for 125293 stmt type pl year 2011
+==============================================================
+Multiple scheme for std statement for 125293 stmt type pl year 2010
+==============================================================
+Multiple scheme for std statement for 125293 stmt type pl year 2009
+==============================================================
+Multiple scheme for std statement for 125293 stmt type pl year 2009
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2009
+==============================================================
+Multiple scheme for std statement for 125293 stmt type cf year 2009
+==============================================================
+Multiple scheme for std statement for 110139 stmt type pl year 2018
+==============================================================
+Multiple scheme for std statement for 110139 stmt type pl year 2017
+==============================================================
+Multiple scheme for std statement for 110139 stmt type pl year 2016
+==============================================================
+Multiple scheme for std statement for 110139 stmt type pl year 2015
+==============================================================
+Multiple scheme for std statement for 110139 stmt type pl year 2014
+==============================================================
+Multiple scheme for std statement for 110139 stmt type pl year 2013
+==============================================================
+Multiple scheme for std statement for 110139 stmt type pl year 2012
+==============================================================
+Multiple scheme for std statement for 110139 stmt type pl year 2011
+==============================================================
+Multiple scheme for std statement for 110139 stmt type pl year 2010
+==============================================================
+Multiple scheme for std statement for 110139 stmt type pl year 2010
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 110139 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 667739 stmt type pl year 2014
+==============================================================
+Multiple scheme for std statement for 667739 stmt type pl year 2013
+==============================================================
+Multiple scheme for std statement for 667739 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 667739 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 667739 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 667739 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 667739 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 667739 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 761353 stmt type pl year 2017
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2018
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2017
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2016
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2015
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2014
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2013
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2012
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2011
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2010
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2009
+==============================================================
+Multiple scheme for std statement for 639822 stmt type pl year 2009
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2009
+==============================================================
+Multiple scheme for std statement for 639822 stmt type cf year 2009
+==============================================================
+Multiple scheme for std statement for 378128 stmt type pl year 2017
+==============================================================
+Multiple scheme for std statement for 378128 stmt type pl year 2016
+==============================================================
+Multiple scheme for std statement for 378128 stmt type pl year 2015
+==============================================================
+Multiple scheme for std statement for 378128 stmt type pl year 2014
+==============================================================
+Multiple scheme for std statement for 378128 stmt type pl year 2013
+==============================================================
+Multiple scheme for std statement for 378128 stmt type pl year 2012
+==============================================================
+Multiple scheme for std statement for 378128 stmt type pl year 2011
+==============================================================
+Multiple scheme for std statement for 378128 stmt type pl year 2010
+==============================================================
+Multiple scheme for std statement for 378128 stmt type pl year 2009
+==============================================================
+Multiple scheme for std statement for 378128 stmt type pl year 2009
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2015
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2014
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2013
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2012
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2011
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2010
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2009
+==============================================================
+Multiple scheme for std statement for 378128 stmt type cf year 2009
+==============================================================
+Multiple scheme for std statement for 50213 stmt type pl year 2017
+==============================================================
+Multiple scheme for std statement for 50213 stmt type pl year 2016
+==============================================================
+Multiple scheme for std statement for 50213 stmt type pl year 2015
+==============================================================
+Multiple scheme for std statement for 50213 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 50213 stmt type cf year 2018
+==============================================================
+Multiple scheme for std statement for 50213 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 50213 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 50213 stmt type cf year 2017
+==============================================================
+Multiple scheme for std statement for 50213 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 50213 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 50213 stmt type cf year 2016
+==============================================================
+Multiple scheme for std statement for 50213 stmt type cf year 2015
+==============================================================
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at SecResServer.Jobs.SimFinDataDownloader.LoadStdStmtAsync(SimFinStmtRegistry stmt, String stmtTypeName) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 316
+   at SecResServer.Jobs.SimFinDataDownloader.RegisterStmtAsync(String stmtTypeName, JObject jObject, Int32 simFinEntityIdCode) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 269
+==============================================================
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at SecResServer.Jobs.SimFinDataDownloader.RegisterStmtAsync(String stmtTypeName, JObject jObject, Int32 simFinEntityIdCode) in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 277
+   at SecResServer.Jobs.SimFinDataDownloader.DownloadAllStmtAsync() in C:\Users\tvolodi\source\repos\SecResServer\SecResServer\Jobs\SimFinDataDownloader.cs:line 111
+==============================================================
