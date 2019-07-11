@@ -20,6 +20,8 @@ namespace SecResServer.Jobs
 
         private const string logFileName = "SimFinImportLog.txt";
 
+        private DateTime stmtPublishDate = DateTime.MinValue;
+
 
         string apiKey = "6sFg1i77TDYXdtBfRb1Ga93lD4XGTuZZ";
 
@@ -130,6 +132,18 @@ namespace SecResServer.Jobs
 
         private async Task RegisterStmtAsync(string stmtTypeName, JObject jObject, int simFinEntityIdCode)
         {
+            string logText = string.Empty;
+            try
+            {
+                logText = $"Register stmt: {stmtTypeName} {simFinEntityIdCode}";
+                await WriteLog(logText);
+            } catch (Exception e)
+            {
+                await WriteLog(e.ToString());
+                throw e;
+            }
+
+
             int simFinEntityId = 0;
             JToken stmtTypeJson = jObject[stmtTypeName];
 
@@ -167,6 +181,8 @@ namespace SecResServer.Jobs
                     //    Console.WriteLine("That is!");
                     //}
 
+                    // Init publish date with mininum value to know, that it is filled on original stmt
+                    stmtPublishDate = DateTime.MinValue;
 
                     // If a statement entry is not registered in DB then register
                     if (stmt == null)
@@ -290,6 +306,9 @@ namespace SecResServer.Jobs
 
         private async Task LoadStdStmtAsync(SimFinStmtRegistry stmt, string stmtTypeName)
         {
+            string logText = $"Loading std stmt {stmt.FYear} {stmtTypeName} {stmt.SimFinEntity.SimFinId} {stmt.PeriodType.Name}";
+            await WriteLog(logText);
+
             // Check that the statement is not loaded already
             bool isToLoad = false;
             SimFinStdStmt simFinStdStmt = null;
@@ -322,7 +341,15 @@ namespace SecResServer.Jobs
 
 
                     string periodEndDateStr = simFinStmtDetails["periodEndDate"].ToString();
-                    DateTime periodEndDate = DateTime.ParseExact(periodEndDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    DateTime periodEndDate = DateTime.MinValue;
+                    if (periodEndDateStr != string.Empty)
+                    {
+                        periodEndDate = DateTime.ParseExact(periodEndDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    } else
+                    {
+                        periodEndDate = stmtPublishDate;
+                    }
+                    
 
                     int fYearInt = stmt.FYear;
 
@@ -465,16 +492,45 @@ namespace SecResServer.Jobs
 
             JObject simFinStmtDetails = null;
 
-            string httpReqString = $"{baseAddress}{serviceName}/{stmt.SimFinEntity.SimFinId}/{subServiceName}?stype={stmtType}&ptype={stmt.PeriodType.Name}&fyear={stmt.FYear}&api-key={apiKey}";
+            string httpReqString = string.Empty;
+            try
+            {
+                httpReqString = $"{baseAddress}{serviceName}/{stmt.SimFinEntity.SimFinId}/{subServiceName}?stype={stmtType}&ptype={stmt.PeriodType.Name}&fyear={stmt.FYear}&api-key={apiKey}";
+            } catch (Exception e)
+            {
+                await WriteLog(e.ToString());
+                throw e;
+            }         
 
             // Get and parse json for the original statement
-            simFinStmtDetails = await Libs.SimFinHttpReqExec.ExecSimFinHttpReqAsync<JObject>(httpReqString, dbConnectionString);
+            try
+            {
+                simFinStmtDetails = await Libs.SimFinHttpReqExec.ExecSimFinHttpReqAsync<JObject>(httpReqString, dbConnectionString);
+            } catch (Exception e)
+            {
+                await WriteLog(e.ToString());
+                throw e;
+            }
+            
 
             return simFinStmtDetails;
         }
 
         private async Task LoadOriginalStmtAsync(SimFinStmtRegistry stmt, string stmtType)
         {
+            string logText = string.Empty;
+            try
+            {
+                logText = $"LoadOriginalStmtAsync: {stmtType} {stmt.PeriodType.Name} {stmt.SimFinEntity.SimFinId} {stmt.FYear}";
+                await WriteLog(logText);
+            }
+            catch (Exception e)
+            {
+                await WriteLog(e.ToString());
+                throw e;
+            }
+
+
             // Check that the statement is not loaded already
             bool isToLoad = false;
             SimFinOriginalStmt simFinOriginalStmt = null;
@@ -498,8 +554,15 @@ namespace SecResServer.Jobs
 
                     if (simFinStmtDetails == null) return;
 
-                    string periodEndDateStr = simFinStmtDetails["periodEndDate"].ToString();
-                    DateTime periodEndDate = DateTime.ParseExact(periodEndDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    string periodEndDateStr = string.Empty;
+                    DateTime periodEndDate = DateTime.MinValue;
+                    periodEndDateStr = simFinStmtDetails["periodEndDate"].ToString();
+                    if(periodEndDateStr != string.Empty)
+                    {
+                        // periodEndDateStr = periodDateToken.ToString();
+                        periodEndDate = DateTime.ParseExact(periodEndDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    }
+                     
                     List<JObject> metaTokens = simFinStmtDetails["metaData"].Children<JObject>().ToList();
 
                     // Don't understand when several meta can be used. Trying to catch this case.
@@ -513,10 +576,16 @@ namespace SecResServer.Jobs
 
                     string firstPublished = metaDataJObject["firstPublished"].ToString();
                     DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    stmtPublishDate = firstPublishedDate;
                     string fYear = metaDataJObject["fyear"].ToString();
                     int fYearInt = int.Parse(fYear);
                     string currencyStr = metaDataJObject["currency"].ToString();
                     string periodTypeStr = metaDataJObject["period"].ToString();
+
+                    if(periodEndDateStr == string.Empty)
+                    {
+                        periodEndDate = firstPublishedDate;
+                    }
 
                     int currencyId = await dbContext.Currencies.Where(c => c.CharCode == currencyStr).Select(c => c.Id).FirstOrDefaultAsync();
 

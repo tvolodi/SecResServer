@@ -29,7 +29,7 @@ namespace SecResServer.Libs
                             int recQnt = await dbContext.SimFinRequestLogs
                                                          .Where(l => l.RequestDT >= DateTime.Now.AddDays(-1))
                                                          .CountAsync();
-                            if (recQnt < 2000)
+                            if (recQnt < 20000)
                             {
                                 isToExit = true;
                             }
