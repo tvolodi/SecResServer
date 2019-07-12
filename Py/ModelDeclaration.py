@@ -13,6 +13,25 @@ class StmtType(Base):
     Name = Column(String)
 
 
+class StmtDetailName(Base):
+    __tablename__ = 'StmtDetailNames'
+    Id = Column(Integer, primary_key=True)
+    Name = Column(String)
+
+
+class PeriodType(Base):
+    __tablename__ = 'PeriodType'
+    Id = Column(Integer, primary_key=True)
+    Name = Column(String)
+
+
+class Currency(Base):
+    __tablename__ = 'Currencies'
+    Id = Column(Integer, primary_key=True)
+    CharCode = Column(String)
+    Name = Column(String)
+
+
 class SimFinSector(Base):
     __tablename__ = 'SimFinSectors'
     Id = Column(Integer, primary_key = True)
@@ -53,10 +72,35 @@ class SimFinCompany(Base):
     SimFinIndustry = relationship("SimFinIndustry")
 
 
+class SimFinStmtRegistry(Base):
+    __tablename__ = 'SimFinStmtRegistries'
+    Id = Column(Integer, primary_key=True)
+    SimFinEntityId = Column(Integer, ForeignKey(SimFinEntity.Id))
+    SimFinEntity = relationship("SimFinEntity")
+    StmtTypeId = Column(Integer, ForeignKey(StmtType.Id))
+    StmtType = relationship("StmtType")
+    FYear = Column(Integer)
+    PeriodTypeId = Column(Integer, ForeignKey(PeriodType.Id))
+    PeriodType = relationship("PeriodType")
+    LoadDateTime = Column(DateTime)
+    OrigStmtLoadDT = Column(DateTime)
+    StdStmtLoadDT = Column(DateTime)
+    IsCalculated = Column(Boolean)
 
 
-
-
+class SimFinOriginalStmt(Base):
+    __tablename__ = 'SimFinOriginalStmts'
+    Id = Column(Integer, primary_key=True)
+    SimFinStmtRegistryId = Column(Integer, ForeignKey(SimFinStmtRegistry.Id))
+    SimFinStmtRegistry = relationship("SimFinStmtRegistry")
+    PeriodEndDate = Column(DateTime)
+    FirstPublishedDate = Column(DateTime)
+    CurrencyId = Column(Integer, ForeignKey(Currency.Id))
+    Currency = relationship("Currency")
+    PeriodTypeId = Column(Integer, ForeignKey(PeriodType.Id))
+    PeriodType = relationship("PeriodType")
+    FYear = Column(Integer)
+    IsStmtDetailsLoaded = Column(Boolean)
 
 
 
