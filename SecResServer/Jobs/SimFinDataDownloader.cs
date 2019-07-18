@@ -95,7 +95,7 @@ namespace SecResServer.Jobs
             {
                 List<SimFinEntity> simFinEntities = await dbContext.SimFinEntities
                                                                    .Where(sfe => sfe.LastUpdateDT > DateTime.Now.AddDays(-daysQntToUpdate)
-                                                                                                || sfe.IsStmtRegistryLoaded == false)
+                                                                                                && sfe.IsStmtRegistryLoaded == false)
                                                                    .ToListAsync();
                 for (int i = 0; i < simFinEntities.Count; i++)
                 {

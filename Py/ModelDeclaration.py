@@ -2,7 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float
 
 Base = declarative_base()
 
@@ -36,6 +36,12 @@ class SimFinSector(Base):
     __tablename__ = 'SimFinSectors'
     Id = Column(Integer, primary_key = True)
     Code = Column(Integer)
+    Name = Column(String)
+
+
+class SimFinStmtIndustryTemplate(Base):
+    __tablename__ = 'SimFinStmtIndustryTemplates'
+    Id = Column(Integer, primary_key=True)
     Name = Column(String)
 
 
@@ -101,6 +107,47 @@ class SimFinOriginalStmt(Base):
     PeriodType = relationship("PeriodType")
     FYear = Column(Integer)
     IsStmtDetailsLoaded = Column(Boolean)
+
+
+class SimFinOrigStmtDetail(Base):
+    __tablename__ = 'SimFinOrigStmtDetails'
+    Id = Column(Integer, primary_key=True)
+    LineItemId = Column(Integer)
+    StmtDetailNameId = Column(Integer, ForeignKey(StmtDetailName.Id))
+    StmtDetailName = relationship("StmtDetailName")
+    SimFinOriginalStmtId = Column(Integer, ForeignKey(SimFinOriginalStmt.Id))
+    SimFinOriginalStmt = relationship("SimFinOriginalStmt")
+    Value = Column(Float)
+
+
+class SimFinStdStmt(Base):
+    __tablename__ = 'SimFinStdStmts'
+    Id = Column(Integer, primary_key=True)
+    SimFinStmtRegistryId = Column(Integer, ForeignKey(SimFinStmtRegistry.Id))
+    SimFinStmtRegistry = relationship("SimFinStmtRegistry")
+    SimFinStmtIndustryTemplateId = Column(Integer, ForeignKey(SimFinStmtIndustryTemplate.Id))
+    SimFinStmtIndustryTemplate = relationship("SimFinStmtIndustryTemplate")
+    FYear = Column(Integer)
+    PeriodTypeId = Column(Integer, ForeignKey(PeriodType.Id))
+    PeriodType = relationship('PeriodType')
+    PeriodEndDate = Column(DateTime)
+    IsStmtDetailsLoaded = Column(Boolean)
+
+
+class SimFinStdStmtDetail(Base):
+    __tablename__ = 'SimFinStdStmtDetails'
+    Id = Column(Integer, primary_key=True)
+    SimFinStdStmtId = Column(Integer, ForeignKey(SimFinStdStmt.Id))
+    SimFinStdStmt = relationship('SimFinStdStmt')
+    StmtDetailNameId = Column(Integer, ForeignKey(StmtDetailName.Id))
+    StmtDetailName = relationship('StmtDetailName')
+    TId = Column(Integer)
+    UId = Column(Integer)
+    DisplayLevel = Column(Integer)
+    ParentTId = Column(Integer)
+    ValueAssigned = Column(Float)
+    ValueCalculated = Column(Float)
+    ValueChosen = Column(Float)
 
 
 
