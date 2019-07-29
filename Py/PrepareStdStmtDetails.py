@@ -1,8 +1,15 @@
-from sqlalchemy import  create_engine
+from sqlalchemy import  create_engine, func
 from sqlalchemy.orm import  sessionmaker
 from sqlalchemy.sql import select
 
-from ModelDeclaration import SimFinEntity, SimFinIndustry, SimFinCompany, SimFinStmtRegistry
+
+from ModelDeclaration import PeriodType,\
+                            SimFinEntity, \
+                            SimFinIndustry, \
+                            SimFinCompany, \
+                            SimFinStmtRegistry, \
+                            SimFinStdStmt, \
+                            SimFinStdStmtDetail
 
 import ModelDeclaration
 
@@ -15,14 +22,21 @@ Session = sessionmaker(bind=dbEngine)
 session = Session()
 
 simFinEntities = session.query(SimFinEntity).filter(SimFinEntity.Ticker == 'DOW').all()
+for simFinEntity in simFinEntities:
 
-simFinEntities2 = dbConnection.execute(select([SimFinEntity]))
-for sim_fin_entity in simFinEntities2:
-    # get stmt registry for the SimFinEntity
-    sim_fin_stmt_registry = db.
+    # session2 = Session()
+    simFinStmtRegistries = session.query(SimFinStmtRegistry).filter(SimFinStmtRegistry.SimFinEntityId == simFinEntity.Id).all()
+    for simFinStmtRegistry in simFinStmtRegistries:
 
+        session3 = Session()
+        simFinStdStmts = session3.query(SimFinStdStmt).filter(SimFinStdStmt.SimFinStmtRegistryId == simFinStmtRegistry.Id).all()
+        for simFinStdStmt in simFinStdStmts:
 
-selectionResult = dbConnection.execute(selection)
+            session4 = Session()
+            simFinStmtDetails = session4.query(SimFinStdStmtDetail).filter(SimFinStdStmtDetail.SimFinStdStmtId == simFinStdStmt.Id).all()
+            for simFinStmtDetail in simFinStmtDetails:
+                print(simFinStmtDetail.StmtDetailName.Name)
+
 
 
 print('Done')

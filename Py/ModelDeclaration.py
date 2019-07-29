@@ -20,7 +20,7 @@ class StmtDetailName(Base):
 
 
 class PeriodType(Base):
-    __tablename__ = 'PeriodType'
+    __tablename__ = 'PeriodTypes'
     Id = Column(Integer, primary_key=True)
     Name = Column(String)
 
