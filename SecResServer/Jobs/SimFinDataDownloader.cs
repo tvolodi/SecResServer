@@ -344,7 +344,15 @@ namespace SecResServer.Jobs
                     DateTime periodEndDate = DateTime.MinValue;
                     if (periodEndDateStr != string.Empty)
                     {
-                        periodEndDate = DateTime.ParseExact(periodEndDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        try
+                        {
+                            periodEndDate = DateTime.ParseExact(periodEndDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        } catch (Exception e)
+                        {
+                            LogError("Normal", e, $"Error with Std Stmt periodEndDateStr: {periodEndDateStr}. stmt.Id={stmt.Id}");
+                            throw e;
+                        }
+                        
                     } else
                     {
                         periodEndDate = stmtPublishDate;
@@ -575,7 +583,15 @@ namespace SecResServer.Jobs
                     JObject metaDataJObject = metaTokens[0];
 
                     string firstPublished = metaDataJObject["firstPublished"].ToString();
-                    DateTime firstPublishedDate = DateTime.ParseExact(firstPublished, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    DateTime firstPublishedDate = DateTime.MinValue;
+                    try
+                    {
+                        firstPublishedDate = DateTime.ParseExact(firstPublished, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    } catch(Exception e)
+                    {
+                        LogError("Normal", e, $"Error for firstPublished. {firstPublished} stmt.Id {stmt.Id}");
+                    }
+                    
                     stmtPublishDate = firstPublishedDate;
                     string fYear = metaDataJObject["fyear"].ToString();
                     int fYearInt = int.Parse(fYear);
@@ -618,8 +634,8 @@ namespace SecResServer.Jobs
                         await dbContext.SaveChangesAsync();
                     } catch(Exception e)
                     {
-                    await WriteLog(e.ToString() + $" for FYear = {fYearInt} period = {periodType.Name}  SimFinId = {stmt.SimFinEntity.SimFinId} ");
-                    throw e;
+                        await WriteLog(e.ToString() + $" for FYear = {fYearInt} period = {periodType.Name}  SimFinId = {stmt.SimFinEntity.SimFinId} ");
+                        throw e;
                     }
                         
                     //}
@@ -707,6 +723,17 @@ namespace SecResServer.Jobs
                     await dbContext.SaveChangesAsync();
                 }
             }
+        }
+
+        private void LogError(string errorLevel, Exception e, string message)
+        {
+            if(!string.IsNullOrEmpty(message))
+            {
+                System.IO.File.AppendAllTextAsync("c:\\temp\\sec_ses_serv.txt", message);
+                System.IO.File.AppendAllTextAsync("c:\\temp\\sec_ses_serv.txt", "\n");
+            }
+            System.IO.File.AppendAllTextAsync("c:\\temp\\sec_ses_serv.txt", e.ToString());
+            System.IO.File.AppendAllTextAsync("c:\\temp\\sec_ses_serv.txt", "\n");
         }
 
         private async Task<JObject> GetOrigStmtDetails(SimFinStmtRegistry stmt, string stmtType)
